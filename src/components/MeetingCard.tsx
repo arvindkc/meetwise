@@ -25,14 +25,19 @@ interface MeetingCardProps {
   onAction: (action: string, meetingId: string) => void;
 }
 
-export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
+export function MeetingCard({
+  meeting,
+  isOverTarget,
+  onAction,
+}: MeetingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [status, setStatus] = useState({
+  const { meetingStatus = {} } = useSettingsStore();
+  const status = meetingStatus[meeting.id] || {
     needsCancel: false,
     needsShorten: false,
     needsReschedule: false,
     prepRequired: false,
-  });
+  };
   const {
     meetingComments = {},
     setMeetingComment,
@@ -42,13 +47,6 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
   const [comment, setComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-
-  const toggleStatus = (key: keyof typeof status) => {
-    setStatus((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
 
   const getStatusCount = () => {
     return Object.values(status).filter(Boolean).length;
@@ -143,7 +141,7 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
           <div className="grid grid-cols-2 gap-2 mb-6">
             <Button
               variant={status.needsCancel ? "default" : "outline"}
-              onClick={() => toggleStatus("needsCancel")}
+              onClick={() => onAction("cancel", meeting.id)}
               className="flex items-center justify-center"
             >
               <X className="w-4 h-4 mr-2" />
@@ -151,7 +149,7 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
             </Button>
             <Button
               variant={status.needsShorten ? "default" : "outline"}
-              onClick={() => toggleStatus("needsShorten")}
+              onClick={() => onAction("shorten", meeting.id)}
               className="flex items-center justify-center"
             >
               <TimerOff className="w-4 h-4 mr-2" />
@@ -159,7 +157,7 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
             </Button>
             <Button
               variant={status.needsReschedule ? "default" : "outline"}
-              onClick={() => toggleStatus("needsReschedule")}
+              onClick={() => onAction("reschedule", meeting.id)}
               className="flex items-center justify-center"
             >
               <CalendarRange className="w-4 h-4 mr-2" />
@@ -169,7 +167,7 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
             </Button>
             <Button
               variant={status.prepRequired ? "default" : "outline"}
-              onClick={() => toggleStatus("prepRequired")}
+              onClick={() => onAction("prep", meeting.id)}
               className="flex items-center justify-center"
             >
               <AlertTriangle className="w-4 h-4 mr-2" />

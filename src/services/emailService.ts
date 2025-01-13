@@ -1,8 +1,17 @@
-import { Meeting, MeetingComment } from "../types";
+import { Meeting } from "../types";
 import { useSettingsStore } from "../stores/settingsStore";
 
 const formatMeetingActions = (meetingId: string): string => {
-  const status = useSettingsStore.getState().meetingStatus?.[meetingId] || {
+  // Log the store state to debug
+  const store = useSettingsStore.getState();
+  console.log(
+    "Store state for meeting",
+    meetingId,
+    ":",
+    store.meetingStatus?.[meetingId]
+  );
+
+  const status = store.meetingStatus?.[meetingId] || {
     needsCancel: false,
     needsShorten: false,
     needsReschedule: false,
@@ -21,7 +30,8 @@ const formatMeetingActions = (meetingId: string): string => {
     : "";
 };
 
-const formatComments = (comments: MeetingComment[]): string => {
+const formatComments = (meetingId: string): string => {
+  const comments = useSettingsStore.getState().meetingComments[meetingId] || [];
   return comments.length > 0
     ? `\nComments:\n${comments
         .map((c) => `• ${c.text} (${c.author})`)
@@ -30,18 +40,12 @@ const formatComments = (comments: MeetingComment[]): string => {
 };
 
 const formatMeeting = (meeting: Meeting): string => {
-  const meetingComments = Array.isArray(
-    useSettingsStore.getState().meetingComments[meeting.id]
-  )
-    ? useSettingsStore.getState().meetingComments[meeting.id]
-    : [];
-
   return `
 ${meeting.rank}. ${meeting.title}
 Duration: ${meeting.duration}h
 Location: ${meeting.location}
 ${formatMeetingActions(meeting.id)}
-${formatComments(meetingComments)}
+${formatComments(meeting.id)}
 ----------------------`;
 };
 

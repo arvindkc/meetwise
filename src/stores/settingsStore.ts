@@ -29,6 +29,7 @@ interface SettingsState extends MeetingSettings {
     commentId: string,
     newText: string
   ) => void;
+  setMeetingStatus: (meetingId: string, status: MeetingStatus) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -91,6 +92,14 @@ export const useSettingsStore = create<SettingsState>()(
               state.meetingComments[meetingId]?.map((c) =>
                 c.id === commentId ? { ...c, text: newText } : c
               ) || [],
+          },
+        })),
+
+      setMeetingStatus: (meetingId: string, status: MeetingStatus) =>
+        set((state) => ({
+          meetingStatus: {
+            ...state.meetingStatus,
+            [meetingId]: status,
           },
         })),
     }),

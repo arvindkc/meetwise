@@ -13,6 +13,7 @@ import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
 import { MeetingCard } from "./components/MeetingCard";
 import { sendEmail } from "@/services/emailService";
+import { useSettingsStore } from "./stores/settingsStore";
 
 function App() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -73,7 +74,42 @@ function App() {
   };
 
   const handleMeetingAction = (action: string, meetingId: string) => {
-    console.log(`Action ${action} for meeting ${meetingId}`);
+    const store = useSettingsStore.getState();
+    console.log("Current store state:", store);
+    console.log("Action:", action, "MeetingId:", meetingId);
+
+    const currentStatus = store.meetingStatus?.[meetingId] || {
+      needsCancel: false,
+      needsShorten: false,
+      needsReschedule: false,
+      prepRequired: false,
+    };
+
+    console.log("Current status:", currentStatus);
+
+    // Update the status based on the action
+    const newStatus = {
+      ...currentStatus,
+      needsCancel:
+        action === "cancel"
+          ? !currentStatus.needsCancel
+          : currentStatus.needsCancel,
+      needsShorten:
+        action === "shorten"
+          ? !currentStatus.needsShorten
+          : currentStatus.needsShorten,
+      needsReschedule:
+        action === "reschedule"
+          ? !currentStatus.needsReschedule
+          : currentStatus.needsReschedule,
+      prepRequired:
+        action === "prep"
+          ? !currentStatus.prepRequired
+          : currentStatus.prepRequired,
+    };
+
+    console.log("New status:", newStatus);
+    store.setMeetingStatus?.(meetingId, newStatus);
   };
 
   const handleDragEnd = (result: DropResult) => {
