@@ -44,17 +44,22 @@ function App() {
   });
   const [useMockData, setUseMockData] = useState<boolean>(false);
 
+  useEffect(() => {
+    updateStats(meetings);
+  }, [targetHours, meetings]);
+
   const updateStats = (meetings: Meeting[]) => {
+    const { targetHours } = useSettingsStore.getState();
     const totalHours = meetings.reduce(
       (acc, meeting) => acc + meeting.duration,
       0
     );
-    const overHours = Math.max(0, totalHours - stats.targetHours);
-    const availableHours = Math.max(0, stats.targetHours - totalHours);
+    const overHours = Math.max(0, totalHours - targetHours);
+    const availableHours = Math.max(0, targetHours - totalHours);
 
     setStats({
       totalHours,
-      targetHours: stats.targetHours,
+      targetHours,
       availableHours,
       overHours,
     });
@@ -220,30 +225,36 @@ function App() {
                 ref={provided.innerRef}
                 className="space-y-4"
               >
-                {meetings.map((meeting, index) => (
-                  <Draggable
-                    key={meeting.id}
-                    draggableId={meeting.id}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <MeetingCard
-                          meeting={meeting}
-                          isOverTarget={
-                            stats.totalHours > stats.targetHours &&
-                            index >= Math.floor(stats.targetHours)
-                          }
-                          onAction={handleMeetingAction}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                {meetings.map((meeting, index) => {
+                  const runningTotal = meetings
+                    .slice(0, index + 1)
+                    .reduce((acc, m) => acc + m.duration, 0);
+
+                  const currentTargetHours =
+                    useSettingsStore.getState().targetHours;
+
+                  return (
+                    <Draggable
+                      key={meeting.id}
+                      draggableId={meeting.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <MeetingCard
+                            meeting={meeting}
+                            isOverTarget={runningTotal > currentTargetHours}
+                            onAction={handleMeetingAction}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  );
+                })}
                 {provided.placeholder}
               </div>
             )}

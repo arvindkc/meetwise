@@ -105,7 +105,7 @@ export function MeetingCard({
     <Card
       className={cn(
         "mb-4 hover:shadow-lg transition-shadow duration-200",
-        isOverTarget && "border-red-500"
+        isOverTarget ? "border-red-500 border-2 bg-red-50" : "border-gray-200"
       )}
     >
       <CardHeader className="p-4">
