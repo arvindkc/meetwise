@@ -9,20 +9,38 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { UploadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import { StatsPanel } from "./components/StatsPanel";
-import { mockMeetings } from "./mockData";
+//import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
 import { MeetingCard } from "./components/MeetingCard";
 import { sendEmail } from "@/services/emailService";
 import { useSettingsStore } from "./stores/settingsStore";
+import { importCalendarData } from "@/services/calendarService";
 
 function App() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const {
+    meetings: storedMeetings,
+    setMeetings,
+    clearAllData,
+    targetHours,
+  } = useSettingsStore();
+  const [meetings, setLocalMeetings] = useState<Meeting[]>(storedMeetings);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<MeetingStats>({
-    totalHours: 0,
-    targetHours: 40,
-    availableHours: 40,
-    overHours: 0,
+    totalHours: storedMeetings.reduce(
+      (acc, meeting) => acc + meeting.duration,
+      0
+    ),
+    targetHours,
+    availableHours: Math.max(
+      0,
+      targetHours -
+        storedMeetings.reduce((acc, meeting) => acc + meeting.duration, 0)
+    ),
+    overHours: Math.max(
+      0,
+      storedMeetings.reduce((acc, meeting) => acc + meeting.duration, 0) -
+        targetHours
+    ),
   });
 
   const updateStats = (meetings: Meeting[]) => {
@@ -41,14 +59,21 @@ function App() {
     });
   };
 
+  const updateMeetings = (newMeetings: Meeting[]) => {
+    setLocalMeetings(newMeetings);
+    setMeetings(newMeetings);
+  };
+
   useEffect(() => {
     try {
-      const rankedMeetings = mockMeetings.map((meeting, index) => ({
-        ...meeting,
-        rank: index + 1,
-      }));
-      setMeetings(rankedMeetings);
-      updateStats(rankedMeetings);
+      //Uncomment this to use mock data
+      //const rankedMeetings = mockMeetings.map((meeting, index) => ({
+      //   ...meeting,
+      //   rank: index + 1,
+      // }));
+      // setLocalMeetings(rankedMeetings);
+      // setMeetings(rankedMeetings);
+      // updateStats(rankedMeetings);
     } catch (error) {
       console.error("Error loading mock data:", error);
     } finally {
@@ -56,20 +81,19 @@ function App() {
     }
   }, []);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const importedMeetings = JSON.parse(e.target?.result as string);
-          setMeetings(importedMeetings);
-          updateStats(importedMeetings);
-        } catch (error) {
-          console.error("Error parsing file:", error);
-        }
-      };
-      reader.readAsText(file);
+    if (!file) return;
+
+    try {
+      const importedMeetings = await importCalendarData(file);
+      updateMeetings(importedMeetings);
+      updateStats(importedMeetings);
+    } catch (error) {
+      console.error("Error importing calendar:", error);
+      // Add user feedback here (e.g., toast notification)
     }
   };
 
@@ -124,7 +148,7 @@ function App() {
       rank: index + 1,
     }));
 
-    setMeetings(updatedItems);
+    updateMeetings(updatedItems);
     updateStats(updatedItems);
   };
 
@@ -159,6 +183,22 @@ function App() {
             <Button variant="outline" onClick={() => sendEmail(meetings)}>
               <EnvelopeClosedIcon className="w-4 h-4 mr-2" />
               Send Email
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Are you sure you want to clear all data? This cannot be undone."
+                  )
+                ) {
+                  clearAllData();
+                  setLocalMeetings([]);
+                  updateStats([]);
+                }
+              }}
+            >
+              Clear All Data
             </Button>
           </div>
         </div>

@@ -15,6 +15,10 @@ export function StatsPanel({ stats }: StatsPanelProps) {
     ? 100
     : (stats.totalHours / targetHours) * 100;
 
+  const formatHours = (hours: number) => {
+    return hours.toFixed(2);
+  };
+
   return (
     <Card className="p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -25,8 +29,9 @@ export function StatsPanel({ stats }: StatsPanelProps) {
         <div>
           <div className="flex justify-between mb-2">
             <div className="flex items-center">
-              <span className="text-sm text-gray-600">Meeting Hours</span>
-              <span className="font-medium ml-2">{stats.totalHours}h</span>
+              <span className="text-sm text-gray-600">
+                Meeting Hours: {formatHours(stats.totalHours)}h
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Target Hours:</span>
@@ -47,18 +52,18 @@ export function StatsPanel({ stats }: StatsPanelProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <span className="text-sm text-gray-600">Available Hours</span>
-            <p className="font-medium">
-              {Math.max(0, targetHours - stats.totalHours)}h
-            </p>
+            <span className="text-sm text-gray-600">
+              Available Hours:{" "}
+              {formatHours(Math.max(0, targetHours - stats.totalHours))}h
+            </span>
           </div>
 
           {isOverTarget ? (
             <div>
-              <span className="text-sm text-red-500">Over Target</span>
-              <p className="font-medium text-red-500">
-                +{Math.max(0, stats.totalHours - targetHours)}h
-              </p>
+              <span className="text-sm text-red-500">
+                Over Target: +
+                {formatHours(Math.max(0, stats.totalHours - targetHours))}h
+              </span>
             </div>
           ) : (
             <div></div>

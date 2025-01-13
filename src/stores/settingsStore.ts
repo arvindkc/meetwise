@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { MeetingComment, MeetingStatus } from "../types";
+import type { MeetingComment, MeetingStatus, Meeting } from "../types";
 
 interface MeetingSettings {
   meetingIcons: Record<string, string>;
@@ -32,6 +32,9 @@ interface SettingsState extends MeetingSettings {
   setMeetingStatus: (meetingId: string, status: MeetingStatus) => void;
   targetHours: number;
   setTargetHours: (hours: number) => void;
+  meetings: Meeting[];
+  setMeetings: (meetings: Meeting[]) => void;
+  clearAllData: () => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -43,6 +46,7 @@ export const useSettingsStore = create<SettingsState>()(
       meetingComments: {},
       meetingStatus: {},
       targetHours: 40,
+      meetings: [],
 
       setMeetingIcon: (meetingId, icon) =>
         set((state) => ({
@@ -107,6 +111,19 @@ export const useSettingsStore = create<SettingsState>()(
         })),
 
       setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
+
+      setMeetings: (meetings: Meeting[]) => set(() => ({ meetings })),
+
+      clearAllData: () =>
+        set(() => ({
+          meetingIcons: {},
+          preworkIcons: {},
+          showActions: {},
+          meetingComments: {},
+          meetingStatus: {},
+          targetHours: 40,
+          meetings: [],
+        })),
     }),
     {
       name: "meeting-settings",

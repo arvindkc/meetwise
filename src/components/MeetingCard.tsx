@@ -83,6 +83,23 @@ export function MeetingCard({
     ? meetingComments[meeting.id]
     : [];
 
+  const formatDuration = (hours: number) => {
+    if (hours >= 1) {
+      return `${Math.round(hours)}h`;
+    }
+    const minutes = Math.round(hours * 60);
+    return `${minutes}m`;
+  };
+
+  const formatDateTime = (isoString: string) => {
+    return new Date(isoString).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <Card
       className={cn(
@@ -106,9 +123,9 @@ export function MeetingCard({
           <div className="flex items-center space-x-4">
             <div className="flex items-center text-gray-500 text-sm">
               <Clock className="w-4 h-4 mr-1" />
-              <span>{meeting.duration}h</span>
+              <span>{formatDuration(meeting.duration)}</span>
               <span className="mx-2">•</span>
-              <span>{meeting.dayOfWeek}</span>
+              <span>{formatDateTime(meeting.startTime)}</span>
             </div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
