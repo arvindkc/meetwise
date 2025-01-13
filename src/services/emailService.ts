@@ -60,27 +60,11 @@ Generated on ${new Date().toLocaleDateString()}
 
 export const sendEmail = async (meetings: Meeting[]) => {
   const emailBody = generateEmailContent(meetings);
+  const subject = "Meeting Updates Summary";
+  const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(emailBody)}`;
 
-  try {
-    // Check if the Web Share API is available
-    if (navigator.share) {
-      await navigator.share({
-        title: "Meeting Updates Summary",
-        text: emailBody,
-      });
-    } else {
-      // Fallback to mailto
-      const mailtoLink = `mailto:?subject=Meeting Updates Summary&body=${encodeURIComponent(
-        emailBody
-      )}`;
-      window.location.href = mailtoLink;
-    }
-  } catch (error) {
-    console.error("Error sharing:", error);
-    // Fallback to mailto if sharing fails
-    const mailtoLink = `mailto:?subject=Meeting Updates Summary&body=${encodeURIComponent(
-      emailBody
-    )}`;
-    window.location.href = mailtoLink;
-  }
+  // Open Gmail compose window
+  window.open(gmailLink, "_blank");
 };
