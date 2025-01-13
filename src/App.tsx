@@ -15,6 +15,7 @@ import { MeetingCard } from "./components/MeetingCard";
 import { sendEmail } from "@/services/emailService";
 import { useSettingsStore } from "./stores/settingsStore";
 import { importCalendarData } from "@/services/calendarService";
+import { ExportInstructions } from "./components/ExportInstructions";
 
 function App() {
   const {
@@ -214,6 +215,8 @@ function App() {
             </Button>
           </div>
         </div>
+
+        <ExportInstructions />
 
         <StatsPanel stats={stats} />
 
