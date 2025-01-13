@@ -36,8 +36,12 @@ function App() {
 
   useEffect(() => {
     try {
-      setMeetings(mockMeetings);
-      updateStats(mockMeetings);
+      const rankedMeetings = mockMeetings.map((meeting, index) => ({
+        ...meeting,
+        rank: index + 1,
+      }));
+      setMeetings(rankedMeetings);
+      updateStats(rankedMeetings);
     } catch (error) {
       console.error("Error loading mock data:", error);
     } finally {
@@ -85,8 +89,13 @@ function App() {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setMeetings(items);
-    updateStats(items);
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }));
+
+    setMeetings(updatedItems);
+    updateStats(updatedItems);
   };
 
   if (isLoading) {

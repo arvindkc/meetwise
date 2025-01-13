@@ -13,6 +13,7 @@ import {
   ChevronUpIcon,
   PersonIcon as Users,
   HomeIcon as MapPin,
+  DragHandleHorizontalIcon,
 } from "@radix-ui/react-icons";
 import type { Meeting, MeetingComment } from "../types";
 import { cn } from "../lib/utils";
@@ -94,7 +95,8 @@ export function MeetingCard({ meeting, isOverTarget }: MeetingCardProps) {
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <span className="text-lg font-semibold">{meeting.priority}</span>
+            <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move" />
+            <span className="text-lg font-semibold">{meeting.rank}</span>
             <span className="text-lg">{meeting.title}</span>
             {getStatusCount() > 0 && (
               <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">

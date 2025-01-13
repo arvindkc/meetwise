@@ -8,9 +8,10 @@ export interface Meeting {
   description: string;
   participants: string[];
   priority: number;
+  rank: number;
   isImportant: boolean;
   needsPrep: boolean;
-  comments: Comment[];
+  comments: MeetingComment[];
   dayOfWeek: string;
   icon?: string;
   preworkIcon?: string;
