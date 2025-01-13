@@ -2,16 +2,7 @@ import { Meeting } from "../types";
 import { useSettingsStore } from "../stores/settingsStore";
 
 const formatMeetingActions = (meetingId: string): string => {
-  // Log the store state to debug
-  const store = useSettingsStore.getState();
-  console.log(
-    "Store state for meeting",
-    meetingId,
-    ":",
-    store.meetingStatus?.[meetingId]
-  );
-
-  const status = store.meetingStatus?.[meetingId] || {
+  const status = useSettingsStore.getState().meetingStatus?.[meetingId] || {
     needsCancel: false,
     needsShorten: false,
     needsReschedule: false,
@@ -19,14 +10,14 @@ const formatMeetingActions = (meetingId: string): string => {
   };
 
   const actions = [
-    status.needsCancel && "Cancel Requested",
-    status.needsShorten && "Shorten Requested",
-    status.needsReschedule && "Reschedule Requested",
-    status.prepRequired && "Prep Required",
+    status.needsCancel && "⛔ Cancel Requested",
+    status.needsShorten && "⏱️ Shorten Requested",
+    status.needsReschedule && "📅 Reschedule Requested",
+    status.prepRequired && "⚠️ Prep Required",
   ].filter(Boolean);
 
   return actions.length > 0
-    ? `\nRequested Actions:\n${actions.map((a) => `• ${a}`).join("\n")}`
+    ? `\nACTIONS NEEDED:\n${actions.map((a) => `• ${a}`).join("\n")}`
     : "";
 };
 
@@ -34,41 +25,37 @@ const formatComments = (meetingId: string): string => {
   const comments = useSettingsStore.getState().meetingComments[meetingId] || [];
   return comments.length > 0
     ? `\nComments:\n${comments
-        .map((c) => `• ${c.text} (${c.author})`)
+        .map((c) => `• ${c.author}: ${c.text}`)
         .join("\n")}`
     : "";
 };
 
-const formatMeeting = (meeting: Meeting): string => {
+export const generateEmailContent = (meetings: Meeting[]): string => {
   return `
-${meeting.rank}. ${meeting.title}
-Duration: ${meeting.duration}h
+📅 MEETING CHANGES SUMMARY
+══════════════════════════
+
+${meetings
+  .map(
+    (meeting) => `
+${meeting.rank}. ${meeting.title.toUpperCase()}
+───────────────────
 Location: ${meeting.location}
+Duration: ${meeting.duration}h
 ${formatMeetingActions(meeting.id)}
 ${formatComments(meeting.id)}
-----------------------`;
-};
+`
+  )
+  .join("\n")}
 
-export const generateEmailContent = (meetings: Meeting[]): string => {
-  const emailBody = `
-Meeting Updates Summary
-----------------------
-
-${meetings.map(formatMeeting).join("\n")}
-
-Generated on ${new Date().toLocaleDateString()}
+Generated: ${new Date().toLocaleDateString()}
 `;
-
-  return emailBody;
 };
 
 export const sendEmail = async (meetings: Meeting[]) => {
   const emailBody = generateEmailContent(meetings);
-  const subject = "Meeting Updates Summary";
-  const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(
-    subject
+  const gmailComposeUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&su=${encodeURIComponent(
+    "Meeting Updates Summary"
   )}&body=${encodeURIComponent(emailBody)}`;
-
-  // Open Gmail compose window
-  window.open(gmailLink, "_blank");
+  window.open(gmailComposeUrl, "_blank");
 };

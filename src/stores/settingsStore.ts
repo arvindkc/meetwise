@@ -30,6 +30,8 @@ interface SettingsState extends MeetingSettings {
     newText: string
   ) => void;
   setMeetingStatus: (meetingId: string, status: MeetingStatus) => void;
+  targetHours: number;
+  setTargetHours: (hours: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -40,6 +42,7 @@ export const useSettingsStore = create<SettingsState>()(
       showActions: {},
       meetingComments: {},
       meetingStatus: {},
+      targetHours: 40,
 
       setMeetingIcon: (meetingId, icon) =>
         set((state) => ({
@@ -102,6 +105,8 @@ export const useSettingsStore = create<SettingsState>()(
             [meetingId]: status,
           },
         })),
+
+      setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
     }),
     {
       name: "meeting-settings",
