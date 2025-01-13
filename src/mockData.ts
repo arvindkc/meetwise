@@ -1,4 +1,4 @@
-import type { Meeting } from '@/types';
+import type { Meeting } from "@/types";
 
 export const mockMeetings: Meeting[] = [
   {
@@ -8,8 +8,14 @@ export const mockMeetings: Meeting[] = [
     endTime: "2024-01-15T11:00:00Z",
     duration: 2,
     location: "Main Conference Room",
-    description: "Quarterly strategy planning session with leadership team to align on Q1 objectives and key initiatives.",
-    participants: ["Sarah Johnson", "Mike Chen", "Alex Rodriguez", "Emma Williams"],
+    description:
+      "Quarterly strategy planning session with leadership team to align on Q1 objectives and key initiatives.",
+    participants: [
+      "Sarah Johnson",
+      "Mike Chen",
+      "Alex Rodriguez",
+      "Emma Williams",
+    ],
     priority: 1,
     isImportant: true,
     needsPrep: true,
@@ -19,9 +25,13 @@ export const mockMeetings: Meeting[] = [
         id: "c1",
         text: "Please prepare Q4 results summary for review",
         author: "Sarah Johnson",
-        timestamp: "2024-01-10T15:30:00Z"
-      }
-    ]
+        timestamp: "2024-01-10T15:30:00Z",
+      },
+    ],
+    icon: "calendar",
+    preworkIcon: "file-text",
+    showActions: true,
+    comment: "",
   },
   {
     id: "2",
@@ -30,13 +40,18 @@ export const mockMeetings: Meeting[] = [
     endTime: "2024-01-15T15:30:00Z",
     duration: 1.5,
     location: "Virtual - Zoom",
-    description: "Review of new product features with the development team and stakeholders.",
+    description:
+      "Review of new product features with the development team and stakeholders.",
     participants: ["David Kim", "Lisa Chen", "Tom Wilson"],
     priority: 2,
     isImportant: true,
     needsPrep: false,
     dayOfWeek: "Monday",
-    comments: []
+    comments: [],
+    icon: "video",
+    preworkIcon: "file-text",
+    showActions: true,
+    comment: "",
   },
   {
     id: "3",
@@ -45,7 +60,8 @@ export const mockMeetings: Meeting[] = [
     endTime: "2024-01-16T11:00:00Z",
     duration: 1,
     location: "Meeting Room 2",
-    description: "Regular team sync to discuss progress, blockers, and upcoming work.",
+    description:
+      "Regular team sync to discuss progress, blockers, and upcoming work.",
     participants: ["Full Team"],
     priority: 3,
     isImportant: false,
@@ -56,9 +72,13 @@ export const mockMeetings: Meeting[] = [
         id: "c2",
         text: "Let's keep this focused on key updates only",
         author: "Team Lead",
-        timestamp: "2024-01-15T09:00:00Z"
-      }
-    ]
+        timestamp: "2024-01-15T09:00:00Z",
+      },
+    ],
+    icon: "calendar",
+    preworkIcon: "file-text",
+    showActions: true,
+    comment: "",
   },
   {
     id: "4",
@@ -73,7 +93,11 @@ export const mockMeetings: Meeting[] = [
     isImportant: true,
     needsPrep: true,
     dayOfWeek: "Tuesday",
-    comments: []
+    comments: [],
+    icon: "calendar",
+    preworkIcon: "file-text",
+    showActions: true,
+    comment: "",
   },
   {
     id: "5",
@@ -88,6 +112,10 @@ export const mockMeetings: Meeting[] = [
     isImportant: false,
     needsPrep: false,
     dayOfWeek: "Wednesday",
-    comments: []
-  }
+    comments: [],
+    icon: "calendar",
+    preworkIcon: "file-text",
+    showActions: true,
+    comment: "",
+  },
 ];

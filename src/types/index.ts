@@ -12,6 +12,10 @@ export interface Meeting {
   needsPrep: boolean;
   comments: Comment[];
   dayOfWeek: string;
+  icon?: string;
+  preworkIcon?: string;
+  showActions?: boolean;
+  comment?: string;
 }
 
 export interface Comment {
@@ -26,4 +30,11 @@ export interface MeetingStats {
   targetHours: number;
   availableHours: number;
   overHours: number;
+}
+
+export interface MeetingComment {
+  id: string;
+  text: string;
+  author: string;
+  timestamp: string;
 }
