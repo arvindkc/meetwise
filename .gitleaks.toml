@@ -1,13 +1,15 @@
 [allowlist]
 description = "Allowlisted files"
-paths = [
-    '''package-lock.json$''',
-    '''yarn.lock$''',
-    '''pnpm-lock.yaml$''',
-    '''.gitleaks.toml$''',
-]
+paths = ['''package-lock.json$''', '''yarn.lock$''', '''pnpm-lock.yaml$''']
 
-[rules]
-description = "Generic secrets"
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|secret|password|pass|pw|token)['\"][:\s]*['"]([0-9a-zA-Z\-_=+/]{8,64})['"]'''
+tags = ["key", "API", "generic"]
+
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret"
 regex = '''(?i)(secret|password|token|key|auth).*[=:]\s*['"][^'"]*['"]'''
 tags = ["key", "secret"]

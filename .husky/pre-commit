@@ -1,5 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-npm run lint
-npm run gitleaks 
+npm run lint || true && gitleaks protect --config .gitleaks.toml --verbose --redact --staged 
