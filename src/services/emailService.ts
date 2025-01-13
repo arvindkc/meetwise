@@ -30,14 +30,42 @@ const formatComments = (meetingId: string): string => {
     : "";
 };
 
-const generateCompactContent = (meetings: Meeting[]): string =>
-  `📅 MEETING SUMMARY
-─────────────────
-${meetings
+const formatDuration = (hours: number): string => {
+  const minutes = Math.round(hours * 60);
+  return `${minutes}min`;
+};
+
+const hasMeetingChanges = (meetingId: string): boolean => {
+  const status = useSettingsStore.getState().meetingStatus?.[meetingId];
+  const comments = useSettingsStore.getState().meetingComments[meetingId] || [];
+  return !!(
+    status?.needsCancel ||
+    status?.needsShorten ||
+    status?.needsReschedule ||
+    status?.prepRequired ||
+    comments.length > 0
+  );
+};
+
+const generateEmailContent = (meetings: Meeting[]): string => {
+  // Get meetings with changes, sorted by priority
+  const meetingsWithChanges = meetings
+    .filter((m) => hasMeetingChanges(m.id))
+    .sort((a, b) => Number(a.priority) - Number(b.priority));
+
+  // Get top 5 meetings by priority
+  const topMeetings = [...meetings]
+    .sort((a, b) => Number(a.priority) - Number(b.priority))
+    .slice(0, 5);
+
+  return `
+CHANGES NEEDED
+─────────────
+${meetingsWithChanges
   .map(
     (m) =>
       `${m.rank}. ${m.title}
-${m.duration}h | ${
+${formatDuration(m.duration)} | ${
         m.location !== "No location specified" ? m.location : "No location"
       }${
         formatMeetingActions(m.id)
@@ -47,33 +75,24 @@ ${m.duration}h | ${
   )
   .join("\n\n")}
 
-Generated: ${new Date().toLocaleDateString()}`;
-
-export const generateEmailContent = (meetings: Meeting[]): string =>
-  `📅 MEETING CHANGES SUMMARY
-══════════════════════════
-${meetings
+TOP 5 MEETINGS
+─────────────
+${topMeetings
   .map(
-    (meeting) =>
-      `${meeting.rank}. ${meeting.title.toUpperCase()}
-───────────────────
-Location: ${meeting.location}
-Duration: ${meeting.duration}h${formatMeetingActions(
-        meeting.id
-      )}${formatComments(meeting.id)}`
+    (m) =>
+      `${m.rank}. ${m.title}
+${formatDuration(m.duration)} | ${
+        m.location !== "No location specified" ? m.location : "No location"
+      }`
   )
   .join("\n\n")}
 
 Generated: ${new Date().toLocaleDateString()}`;
+};
 
 export const sendEmail = async (meetings: Meeting[]) => {
-  const detailedContent = generateEmailContent(meetings);
-  const emailBody =
-    detailedContent.length > 2000
-      ? generateCompactContent(meetings)
-      : detailedContent;
-
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&su=Meeting+Updates+Summary&body=${encodeURIComponent(
+  const emailBody = generateEmailContent(meetings);
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&su=Meeting+Changes+Needed&body=${encodeURIComponent(
     emailBody
   )}`;
   window.location.href = gmailUrl;
