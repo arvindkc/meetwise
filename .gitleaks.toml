@@ -1,0 +1,13 @@
+[allowlist]
+description = "Allowlisted files"
+paths = [
+    '''package-lock.json$''',
+    '''yarn.lock$''',
+    '''pnpm-lock.yaml$''',
+    '''.gitleaks.toml$''',
+]
+
+[rules]
+description = "Generic secrets"
+regex = '''(?i)(secret|password|token|key|auth).*[=:]\s*['"][^'"]*['"]'''
+tags = ["key", "secret"]

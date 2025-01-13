@@ -9,7 +9,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky install",
+    "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+    "pre-commit": "npm run lint && npm run gitleaks",
+    "gitleaks": "gitleaks protect --verbose --redact --staged"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^16.6.0",
@@ -64,6 +68,8 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
     "@eslint/js": "^9.11.1",
     "@types/node": "^22.7.3",
     "@types/react": "^18.3.9",
@@ -74,6 +80,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.9.0",
+    "husky": "^9.1.7",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.5.3",
