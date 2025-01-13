@@ -1,6 +1,14 @@
 function exportCalendarEvents() {
-  const startDate = new Date("2025-01-13");
-  const endDate = new Date("2025-01-17");
+  // Get current date
+  const today = new Date();
+
+  // Find Monday (start) of current week
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - today.getDay() + 1); // Monday is 1
+
+  // Find Friday (end) of current week
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() - today.getDay() + 5); // Friday is 5
 
   const calendar = CalendarApp.getDefaultCalendar();
   const events = calendar.getEvents(startDate, endDate);
@@ -46,6 +54,12 @@ function exportCalendarEvents() {
     comment: "",
   }));
 
+  // Format dates for filename
+  const formatDate = (date) => date.toISOString().split("T")[0];
+  const fileName = `calendar-export-${formatDate(startDate)}-to-${formatDate(
+    endDate
+  )}.json`;
+
   const fileContent = JSON.stringify(formattedEvents, null, 2);
-  DriveApp.createFile("calendar-export.json", fileContent, "application/json");
+  DriveApp.createFile(fileName, fileContent, "application/json");
 }

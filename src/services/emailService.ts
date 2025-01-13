@@ -30,32 +30,51 @@ const formatComments = (meetingId: string): string => {
     : "";
 };
 
-export const generateEmailContent = (meetings: Meeting[]): string => {
-  return `
-📅 MEETING CHANGES SUMMARY
-══════════════════════════
-
+const generateCompactContent = (meetings: Meeting[]): string =>
+  `📅 MEETING SUMMARY
+─────────────────
 ${meetings
   .map(
-    (meeting) => `
-${meeting.rank}. ${meeting.title.toUpperCase()}
+    (m) =>
+      `${m.rank}. ${m.title}
+${m.duration}h | ${
+        m.location !== "No location specified" ? m.location : "No location"
+      }${
+        formatMeetingActions(m.id)
+          ? `\n${formatMeetingActions(m.id).trim()}`
+          : ""
+      }${formatComments(m.id) ? `\n${formatComments(m.id).trim()}` : ""}`
+  )
+  .join("\n\n")}
+
+Generated: ${new Date().toLocaleDateString()}`;
+
+export const generateEmailContent = (meetings: Meeting[]): string =>
+  `📅 MEETING CHANGES SUMMARY
+══════════════════════════
+${meetings
+  .map(
+    (meeting) =>
+      `${meeting.rank}. ${meeting.title.toUpperCase()}
 ───────────────────
 Location: ${meeting.location}
-Duration: ${meeting.duration}h
-${formatMeetingActions(meeting.id)}
-${formatComments(meeting.id)}
-`
+Duration: ${meeting.duration}h${formatMeetingActions(
+        meeting.id
+      )}${formatComments(meeting.id)}`
   )
-  .join("\n")}
+  .join("\n\n")}
 
-Generated: ${new Date().toLocaleDateString()}
-`;
-};
+Generated: ${new Date().toLocaleDateString()}`;
 
 export const sendEmail = async (meetings: Meeting[]) => {
-  const emailBody = generateEmailContent(meetings);
-  const gmailComposeUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&su=${encodeURIComponent(
-    "Meeting Updates Summary"
-  )}&body=${encodeURIComponent(emailBody)}`;
-  window.open(gmailComposeUrl, "_blank");
+  const detailedContent = generateEmailContent(meetings);
+  const emailBody =
+    detailedContent.length > 2000
+      ? generateCompactContent(meetings)
+      : detailedContent;
+
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&su=Meeting+Updates+Summary&body=${encodeURIComponent(
+    emailBody
+  )}`;
+  window.location.href = gmailUrl;
 };
