@@ -223,7 +223,7 @@ function App() {
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="space-y-4"
+                className="space-y-1"
               >
                 {meetings.map((meeting, index) => {
                   const runningTotal = meetings

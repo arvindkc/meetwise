@@ -104,28 +104,28 @@ export function MeetingCard({
   return (
     <Card
       className={cn(
-        "mb-4 hover:shadow-lg transition-shadow duration-200",
+        "mb-2 hover:shadow-lg transition-shadow duration-200",
         isOverTarget ? "border-red-500 border-2 bg-red-50" : "border-gray-200"
       )}
     >
-      <CardHeader className="p-4">
+      <CardHeader className="p-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move" />
-            <span className="text-lg font-semibold">{meeting.rank}</span>
-            <span className="text-lg">{meeting.title}</span>
+            <span className="text-base font-semibold">{meeting.rank}</span>
+            <span className="text-base">{meeting.title}</span>
             {getStatusCount() > 0 && (
-              <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+              <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full">
                 {getStatusCount()} action{getStatusCount() !== 1 ? "s" : ""}{" "}
                 needed
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center text-gray-500 text-sm">
-              <Clock className="w-4 h-4 mr-1" />
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center text-gray-500 text-xs">
+              <Clock className="w-3 h-3 mr-1" />
               <span>{formatDuration(meeting.duration)}</span>
-              <span className="mx-2">•</span>
+              <span className="mx-1">•</span>
               <span>{formatDateTime(meeting.startTime)}</span>
             </div>
             <button
@@ -133,9 +133,9 @@ export function MeetingCard({
               className="text-gray-500 hover:text-gray-700"
             >
               {isExpanded ? (
-                <ChevronUpIcon className="w-5 h-5" />
+                <ChevronUpIcon className="w-4 h-4" />
               ) : (
-                <ChevronDownIcon className="w-5 h-5" />
+                <ChevronDownIcon className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -143,20 +143,20 @@ export function MeetingCard({
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="px-4 pb-4">
-          <div className="mb-6 space-y-2 text-sm text-gray-600">
+        <CardContent className="px-2 pb-2">
+          <div className="mb-4 space-y-1 text-xs text-gray-600">
             <p>{meeting.description}</p>
             <div className="flex items-center">
-              <MapPin className="w-4 h-4 mr-2" />
+              <MapPin className="w-3 h-3 mr-1" />
               <span>{meeting.location}</span>
             </div>
             <div className="flex items-start">
-              <Users className="w-4 h-4 mr-2 mt-1" />
+              <Users className="w-3 h-3 mr-1 mt-0.5" />
               <span>{meeting.participants.join(", ")}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-6">
+          <div className="grid grid-cols-2 gap-1 mb-4">
             <Button
               variant={status.needsCancel ? "default" : "outline"}
               onClick={() => onAction("cancel", meeting.id)}
@@ -193,10 +193,10 @@ export function MeetingCard({
             </Button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="flex items-center">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              <h4 className="font-medium">Comments</h4>
+              <MessageSquare className="w-3 h-3 mr-1" />
+              <h4 className="font-medium text-sm">Comments</h4>
             </div>
 
             {comments.map((comment) => (
