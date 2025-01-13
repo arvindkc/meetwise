@@ -9,7 +9,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { UploadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import { StatsPanel } from "./components/StatsPanel";
-//import { mockMeetings } from "./mockData";
+import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
 import { MeetingCard } from "./components/MeetingCard";
 import { sendEmail } from "@/services/emailService";
@@ -42,6 +42,7 @@ function App() {
         targetHours
     ),
   });
+  const [useMockData, setUseMockData] = useState<boolean>(false);
 
   const updateStats = (meetings: Meeting[]) => {
     const totalHours = meetings.reduce(
@@ -66,20 +67,20 @@ function App() {
 
   useEffect(() => {
     try {
-      //Uncomment this to use mock data
-      //const rankedMeetings = mockMeetings.map((meeting, index) => ({
-      //   ...meeting,
-      //   rank: index + 1,
-      // }));
-      // setLocalMeetings(rankedMeetings);
-      // setMeetings(rankedMeetings);
-      // updateStats(rankedMeetings);
+      if (useMockData) {
+        const rankedMeetings = mockMeetings.map((meeting, index) => ({
+          ...meeting,
+          rank: index + 1,
+        }));
+        updateMeetings(rankedMeetings);
+        updateStats(rankedMeetings);
+      }
     } catch (error) {
       console.error("Error loading mock data:", error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [useMockData]);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -164,7 +165,7 @@ function App() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Meeting Manager</h1>
+          <h1 className="text-2xl font-bold">MeetWise</h1>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -199,6 +200,12 @@ function App() {
               }}
             >
               Clear All Data
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setUseMockData(!useMockData)}
+            >
+              {useMockData ? "Use Real Data" : "Use Mock Data"}
             </Button>
           </div>
         </div>
