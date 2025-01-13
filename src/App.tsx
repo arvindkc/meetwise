@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { UploadIcon, DownloadIcon } from "@radix-ui/react-icons";
 import { StatsPanel } from "./components/StatsPanel";
 import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
+import { MeetingCard } from "./components/MeetingCard";
 
 function App() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -76,6 +78,17 @@ function App() {
     linkElement.click();
   };
 
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(meetings);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setMeetings(items);
+    updateStats(items);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -113,19 +126,43 @@ function App() {
 
         <StatsPanel stats={stats} />
 
-        <div className="space-y-4">
-          {meetings.map((meeting) => (
-            <div key={meeting.id} className="p-4 bg-card rounded-lg shadow">
-              <h3 className="font-medium">{meeting.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {meeting.description}
-              </p>
-              <Button onClick={() => handleMeetingAction("view", meeting.id)}>
-                View Details
-              </Button>
-            </div>
-          ))}
-        </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="meetings">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-4"
+              >
+                {meetings.map((meeting, index) => (
+                  <Draggable
+                    key={meeting.id}
+                    draggableId={meeting.id}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <MeetingCard
+                          meeting={meeting}
+                          isOverTarget={
+                            stats.totalHours > stats.targetHours &&
+                            index >= Math.floor(stats.targetHours)
+                          }
+                          onAction={handleMeetingAction}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </div>
   );

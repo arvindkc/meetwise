@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
 import {
-  Clock,
-  GripVertical,
-  ChevronDown,
-  ChevronUp,
-  Flag,
-  BookOpen,
-  MapPin,
-  Users,
-} from "lucide-react";
-import type { Meeting } from "@/types";
-import { cn } from "@/lib/utils";
+  TimerIcon as ClockIcon,
+  DragHandleHorizontalIcon as DragHandleDots2Icon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  StarFilledIcon as FlagIcon,
+  FileTextIcon as ReaderIcon,
+  HomeIcon,
+  PersonIcon,
+} from "@radix-ui/react-icons";
+import type { Meeting } from "../types";
+import { cn } from "../lib/utils";
 
 interface MeetingCardProps {
   meeting: Meeting;
@@ -36,15 +36,17 @@ export function MeetingCard({
       )}
     >
       <div className="flex items-center gap-2">
-        <GripVertical className="text-gray-400" />
+        <DragHandleDots2Icon className="text-gray-400" />
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-semibold">#{meeting.priority}</span>
               <h3 className="font-medium">{meeting.title}</h3>
-              {meeting.isImportant && <Flag className="w-4 h-4 text-red-500" />}
+              {meeting.isImportant && (
+                <FlagIcon className="w-4 h-4 text-red-500" />
+              )}
               {meeting.needsPrep && (
-                <BookOpen className="w-4 h-4 text-blue-500" />
+                <ReaderIcon className="w-4 h-4 text-blue-500" />
               )}
             </div>
             <Button
@@ -52,13 +54,13 @@ export function MeetingCard({
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? <ChevronUp /> : <ChevronDown />}
+              {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
             </Button>
           </div>
 
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
             <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+              <ClockIcon className="w-4 h-4" />
               <span>{meeting.duration}h</span>
             </div>
             <span>{meeting.dayOfWeek}</span>
@@ -72,12 +74,12 @@ export function MeetingCard({
             <p className="text-sm text-gray-600">{meeting.description}</p>
 
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <MapPin className="w-4 h-4" />
+              <HomeIcon className="w-4 h-4" />
               <span>{meeting.location}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Users className="w-4 h-4" />
+              <PersonIcon className="w-4 h-4" />
               <span>{meeting.participants.join(", ")}</span>
             </div>
           </div>
