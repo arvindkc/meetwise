@@ -1,12 +1,18 @@
 import { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import { UploadIcon, DownloadIcon } from "@radix-ui/react-icons";
+import { UploadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import { StatsPanel } from "./components/StatsPanel";
 import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
 import { MeetingCard } from "./components/MeetingCard";
+import { sendEmail } from "@/services/emailService";
 
 function App() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -70,19 +76,7 @@ function App() {
     console.log(`Action ${action} for meeting ${meetingId}`);
   };
 
-  const exportData = () => {
-    const dataStr = JSON.stringify(meetings, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = "meetings.json";
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
-
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(meetings);
@@ -126,9 +120,9 @@ function App() {
               className="hidden"
               onChange={handleFileUpload}
             />
-            <Button variant="outline" onClick={exportData}>
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export
+            <Button variant="outline" onClick={() => sendEmail(meetings)}>
+              <EnvelopeClosedIcon className="w-4 h-4 mr-2" />
+              Send Email
             </Button>
           </div>
         </div>

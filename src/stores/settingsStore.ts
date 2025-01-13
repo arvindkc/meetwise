@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { MeetingComment, MeetingStatus } from "../types";
 
 interface MeetingSettings {
   meetingIcons: Record<string, string>;
   preworkIcons: Record<string, string>;
   showActions: Record<string, boolean>;
-  meetingComments: Record<string, Comment[]>;
+  meetingComments: Record<string, MeetingComment[]>;
+  meetingStatus: Record<string, MeetingStatus>;
 }
 
 interface Comment {
@@ -36,6 +38,7 @@ export const useSettingsStore = create<SettingsState>()(
       preworkIcons: {},
       showActions: {},
       meetingComments: {},
+      meetingStatus: {},
 
       setMeetingIcon: (meetingId, icon) =>
         set((state) => ({

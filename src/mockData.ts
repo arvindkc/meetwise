@@ -7,6 +7,7 @@ export const mockMeetings: Meeting[] = [
     startTime: "2024-01-15T09:00:00Z",
     endTime: "2024-01-15T11:00:00Z",
     duration: 2,
+    rank: 1,
     location: "Main Conference Room",
     description:
       "Quarterly strategy planning session with leadership team to align on Q1 objectives and key initiatives.",
@@ -39,6 +40,7 @@ export const mockMeetings: Meeting[] = [
     startTime: "2024-01-15T14:00:00Z",
     endTime: "2024-01-15T15:30:00Z",
     duration: 1.5,
+    rank: 2,
     location: "Virtual - Zoom",
     description:
       "Review of new product features with the development team and stakeholders.",
@@ -59,6 +61,7 @@ export const mockMeetings: Meeting[] = [
     startTime: "2024-01-16T10:00:00Z",
     endTime: "2024-01-16T11:00:00Z",
     duration: 1,
+    rank: 3,
     location: "Meeting Room 2",
     description:
       "Regular team sync to discuss progress, blockers, and upcoming work.",
@@ -86,6 +89,7 @@ export const mockMeetings: Meeting[] = [
     startTime: "2024-01-16T15:00:00Z",
     endTime: "2024-01-16T16:30:00Z",
     duration: 1.5,
+    rank: 4,
     location: "Client Office",
     description: "Presentation of Q1 roadmap to key client stakeholders.",
     participants: ["Sarah Johnson", "Client Team"],
@@ -105,6 +109,7 @@ export const mockMeetings: Meeting[] = [
     startTime: "2024-01-17T13:00:00Z",
     endTime: "2024-01-17T15:00:00Z",
     duration: 2,
+    rank: 5,
     location: "Training Room",
     description: "Mandatory annual HR training session for all employees.",
     participants: ["All Staff"],

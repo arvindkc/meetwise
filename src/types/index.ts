@@ -39,3 +39,10 @@ export interface MeetingComment {
   author: string;
   timestamp: string;
 }
+
+export interface MeetingStatus {
+  needsCancel: boolean;
+  needsShorten: boolean;
+  needsReschedule: boolean;
+  prepRequired: boolean;
+}
