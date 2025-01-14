@@ -48,14 +48,12 @@ const hasMeetingChanges = (meetingId: string): boolean => {
 };
 
 const generateEmailContent = (meetings: Meeting[]): string => {
-  // Get meetings with changes, sorted by priority
   const meetingsWithChanges = meetings
     .filter((m) => hasMeetingChanges(m.id))
-    .sort((a, b) => Number(a.priority) - Number(b.priority));
+    .sort((a, b) => Number(a.rank) - Number(b.rank));
 
-  // Get top 5 meetings by priority
   const topMeetings = [...meetings]
-    .sort((a, b) => Number(a.priority) - Number(b.priority))
+    .sort((a, b) => Number(a.rank) - Number(b.rank))
     .slice(0, 5);
 
   return `

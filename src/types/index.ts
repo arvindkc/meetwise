@@ -7,7 +7,6 @@ export interface Meeting {
   location: string;
   description: string;
   participants: string[];
-  priority: number;
   rank: number;
   isImportant: boolean;
   needsPrep: boolean;
