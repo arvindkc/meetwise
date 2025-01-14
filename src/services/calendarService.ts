@@ -23,7 +23,6 @@ export const transformCalendarEvents = (events: CalendarEvent[]): Meeting[] => {
     location: event.location,
     description: event.description,
     participants: event.participants,
-    priority: index + 1,
     isImportant: false,
     needsPrep: false,
     dayOfWeek: event.dayOfWeek,
