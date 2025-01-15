@@ -1,0 +1,16 @@
+.meeting-content {
+  @apply text-sm leading-relaxed;
+}
+
+.meeting-content a {
+  @apply text-blue-600 hover:underline;
+}
+
+/* Optional: Add styles for different sections */
+.meeting-content p {
+  @apply mb-2;
+}
+
+.meeting-content .phone-numbers {
+  @apply text-gray-600 text-xs;
+}
