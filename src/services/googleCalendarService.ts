@@ -20,13 +20,11 @@ export interface GoogleCalendarService {
 class GoogleCalendarServiceImpl implements GoogleCalendarService {
   private tokenClient: TokenClient | null;
   private gapiInited: boolean;
-  private gisInited: boolean;
   private accessToken: string | null;
 
   constructor() {
     this.tokenClient = null;
     this.gapiInited = false;
-    this.gisInited = false;
     this.accessToken = null;
   }
 
@@ -72,7 +70,6 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
         this.accessToken = response.access_token;
       },
     });
-    this.gisInited = true;
   }
 
   authenticate() {
