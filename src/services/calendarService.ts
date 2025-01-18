@@ -1,16 +1,27 @@
 import { Meeting } from "@/types";
+import { CalendarEvent } from "@/types/calendar";
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  location: string;
-  description: string;
-  participants: string[];
-  dayOfWeek: string;
-}
+import { googleCalendarService } from "@/services/googleCalendarService";
+
+export const importGoogleCalendar = async (
+  startDate?: Date,
+  endDate?: Date
+) => {
+  try {
+    const events = await googleCalendarService.getCalendarEvents(
+      startDate,
+      endDate
+    );
+    if (!events || events.length === 0) {
+      throw new Error("No calendar events found");
+    }
+    return transformCalendarEvents(events);
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to import Google Calendar: ${errorMessage}`);
+  }
+};
 
 export const transformCalendarEvents = (events: CalendarEvent[]): Meeting[] => {
   return events.map((event, index) => ({
