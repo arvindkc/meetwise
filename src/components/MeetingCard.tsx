@@ -18,6 +18,7 @@ import {
 import type { Meeting, MeetingComment } from "../types";
 import { cn } from "../lib/utils";
 import { useSettingsStore } from "../stores/settingsStore";
+import { MeetingContent } from "@/components/MeetingContent";
 
 interface MeetingCardProps {
   meeting: Meeting;
@@ -145,7 +146,9 @@ export function MeetingCard({
       {isExpanded && (
         <CardContent className="px-2 pb-2">
           <div className="mb-4 space-y-1 text-xs text-gray-600">
-            <p>{meeting.description}</p>
+            {meeting.description && (
+              <MeetingContent content={meeting.description} />
+            )}
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
               <span>{meeting.location}</span>
