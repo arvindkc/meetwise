@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -7,7 +7,11 @@ import {
 } from "@hello-pangea/dnd";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import { UploadIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
+import {
+  UploadIcon,
+  EnvelopeClosedIcon,
+  CalendarIcon,
+} from "@radix-ui/react-icons";
 import { StatsPanel } from "./components/StatsPanel";
 import { mockMeetings } from "./mockData";
 import type { Meeting, MeetingStats } from "./types";
@@ -16,6 +20,8 @@ import { sendEmail } from "@/services/emailService";
 import { useSettingsStore } from "./stores/settingsStore";
 import { importCalendarData } from "@/services/calendarService";
 import { ExportInstructions } from "./components/ExportInstructions";
+import { googleCalendarService } from "./services/googleCalendarService";
+import { importGoogleCalendar } from "./services/calendarService";
 
 function App() {
   const {
@@ -44,6 +50,7 @@ function App() {
     ),
   });
   const [useMockData, setUseMockData] = useState<boolean>(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     updateStats(meetings);
@@ -66,10 +73,13 @@ function App() {
     });
   };
 
-  const updateMeetings = (newMeetings: Meeting[]) => {
-    setLocalMeetings(newMeetings);
-    setMeetings(newMeetings);
-  };
+  const updateMeetings = useCallback(
+    (newMeetings: Meeting[]) => {
+      setLocalMeetings(newMeetings);
+      setMeetings(newMeetings);
+    },
+    [setMeetings]
+  );
 
   useEffect(() => {
     try {
@@ -86,7 +96,7 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [useMockData]);
+  }, [useMockData, updateMeetings]);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -159,6 +169,12 @@ function App() {
     updateStats(updatedItems);
   };
 
+  useEffect(() => {
+    googleCalendarService.initializeGoogleApi(
+      import.meta.env.VITE_GOOGLE_CLIENT_ID
+    );
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -212,6 +228,26 @@ function App() {
               onClick={() => setUseMockData(!useMockData)}
             >
               {useMockData ? "Use Real Data" : "Use Mock Data"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={isImporting}
+              onClick={async () => {
+                try {
+                  setIsImporting(true);
+                  await googleCalendarService.authenticate();
+                  const meetings = await importGoogleCalendar();
+                  updateMeetings(meetings);
+                  updateStats(meetings);
+                } catch (error) {
+                  console.error("Error importing from Google Calendar:", error);
+                } finally {
+                  setIsImporting(false);
+                }
+              }}
+            >
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              {isImporting ? "Importing..." : "Import from Google"}
             </Button>
           </div>
         </div>

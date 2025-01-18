@@ -75,9 +75,22 @@ export const parseMeetingContent = (
   const meetingId = zoomSection?.match(/Meeting ID: ([^\s]+)/)?.[1] || "";
   const passcode = zoomSection?.match(/Passcode: ([^\s]+)/)?.[1] || "";
 
-  // Extract phone numbers more accurately
+  // Extract phone numbers more accurately, excluding Zoom numbers
   const phoneNumbers =
-    finalContent.match(/\+\d+(\s\d+)*/g)?.map((num) => num.trim()) ?? [];
+    finalContent
+      .match(/\+\d+(\s\d+)*/g)
+      ?.filter((num) => {
+        // Filter out common Zoom phone number patterns
+        const zoomPatterns = [
+          /^\+1[0-9]{10}$/, // US/Canada format
+          /^\+\d{2}\s\d{2}\s\d{3}\s\d{4}$/, // International format
+          /^\+\d{2}\s\d{2}\s\d{4}\s\d{4}$/, // Alternative international format
+        ];
+        return !zoomPatterns.some((pattern) =>
+          pattern.test(num.replace(/\s/g, ""))
+        );
+      })
+      .map((num) => num.trim()) ?? [];
 
   return {
     title: sections[0] || "",
