@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "./stores/settingsStore";
-import { Schedule } from "./components/Schedule";
-import { Insights } from "./components/Insights";
+import { Plan } from "./components/Plan";
+import { Review } from "./components/Review";
+import { Rate } from "./components/Rate";
 import { Header } from "./components/Header";
 import { cn } from "@/lib/utils";
 import { googleCalendarService } from "./services/googleCalendarService";
@@ -10,8 +11,8 @@ function App() {
   const { meetings, setMeetings, clearAllData, initializeStore, isLoading } =
     useSettingsStore();
   const [useMockData, setUseMockData] = useState(false);
-  const [activeTab, setActiveTab] = useState<"schedule" | "insights">(
-    "schedule"
+  const [activeTab, setActiveTab] = useState<"review" | "rate" | "plan">(
+    "review"
   );
 
   useEffect(() => {
@@ -42,30 +43,47 @@ function App() {
 
         <div className="flex space-x-1 mb-6">
           <button
-            onClick={() => setActiveTab("schedule")}
+            onClick={() => setActiveTab("review")}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md",
-              activeTab === "schedule"
+              activeTab === "review"
                 ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted"
             )}
           >
-            Schedule
+            Review
           </button>
           <button
-            onClick={() => setActiveTab("insights")}
+            onClick={() => setActiveTab("rate")}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md",
-              activeTab === "insights"
+              activeTab === "rate"
                 ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted"
             )}
           >
-            Insights
+            Rate
+          </button>
+          <button
+            onClick={() => setActiveTab("plan")}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-md",
+              activeTab === "plan"
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            )}
+          >
+            Plan
           </button>
         </div>
 
-        {activeTab === "schedule" ? <Schedule /> : <Insights />}
+        {activeTab === "review" ? (
+          <Review />
+        ) : activeTab === "rate" ? (
+          <Rate />
+        ) : (
+          <Plan />
+        )}
       </div>
     </div>
   );

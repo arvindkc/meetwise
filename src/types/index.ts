@@ -46,3 +46,9 @@ export interface MeetingStatus {
   needsReschedule: boolean;
   prepRequired: boolean;
 }
+
+export interface MeetingRating {
+  rating: number;
+  comment: string;
+  timestamp: string;
+}

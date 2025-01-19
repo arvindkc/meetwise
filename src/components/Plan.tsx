@@ -15,13 +15,13 @@ import {
   filterMeetingsByDateRange,
 } from "../services/calendarService";
 
-export function Schedule() {
+export function Plan() {
   const { meetings: storedMeetings, targetHours } = useSettingsStore();
   const dateRanges = getDateRanges();
   const filteredMeetings = filterMeetingsByDateRange(
     storedMeetings,
-    dateRanges.schedule.start,
-    dateRanges.schedule.end
+    dateRanges.plan.start,
+    dateRanges.plan.end
   );
   const [meetings, setLocalMeetings] = useState<Meeting[]>(filteredMeetings);
   const [stats, setStats] = useState<MeetingStats>({
@@ -45,8 +45,8 @@ export function Schedule() {
   useEffect(() => {
     const filtered = filterMeetingsByDateRange(
       storedMeetings,
-      dateRanges.schedule.start,
-      dateRanges.schedule.end
+      dateRanges.plan.start,
+      dateRanges.plan.end
     );
     setLocalMeetings(filtered);
   }, [storedMeetings]);

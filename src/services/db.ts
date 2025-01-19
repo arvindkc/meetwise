@@ -1,5 +1,10 @@
 import Dexie, { Table } from "dexie";
-import type { Meeting, MeetingComment, MeetingStatus } from "../types";
+import type {
+  Meeting,
+  MeetingComment,
+  MeetingStatus,
+  MeetingRating,
+} from "../types";
 
 export class MeetWiseDB extends Dexie {
   meetings!: Table<Meeting>;
@@ -8,7 +13,7 @@ export class MeetWiseDB extends Dexie {
   showActions!: Table<{ id: string; value: boolean }>;
   meetingComments!: Table<{ id: string; value: MeetingComment[] }>;
   meetingStatus!: Table<{ id: string; value: MeetingStatus }>;
-  meetingRatings!: Table<{ id: string; value: number }>;
+  meetingRatings!: Table<{ id: string; value: MeetingRating }, string>;
   settings!: Table<{ id: string; value: unknown }>;
 
   constructor() {
@@ -128,16 +133,21 @@ export class MeetWiseDB extends Dexie {
   }
 
   // Rating methods
-  async getMeetingRating(meetingId: string): Promise<number | undefined> {
+  async getMeetingRating(
+    meetingId: string
+  ): Promise<MeetingRating | undefined> {
     const rating = await this.meetingRatings.get(meetingId);
     return rating?.value;
   }
 
-  async setMeetingRating(meetingId: string, rating: number): Promise<void> {
+  async setMeetingRating(
+    meetingId: string,
+    rating: MeetingRating
+  ): Promise<void> {
     await this.meetingRatings.put({ id: meetingId, value: rating });
   }
 
-  async getAllMeetingRatings(): Promise<Record<string, number>> {
+  async getAllMeetingRatings(): Promise<Record<string, MeetingRating>> {
     const ratings = await this.meetingRatings.toArray();
     return Object.fromEntries(ratings.map((r) => [r.id, r.value]));
   }

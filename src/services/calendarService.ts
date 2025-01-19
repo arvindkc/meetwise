@@ -29,14 +29,22 @@ export const getDateRanges = () => {
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - DAYS_AGO);
   ninetyDaysAgo.setHours(0, 0, 0, 0);
 
+  const lastWeekStart = new Date(today);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  lastWeekStart.setHours(0, 0, 0, 0);
+
   return {
-    schedule: {
+    plan: {
       start: today,
       end: nextWeek,
     },
-    insights: {
+    review: {
       start: ninetyDaysAgo,
       end: new Date(today.getTime() - 24 * 60 * 60 * 1000),
+    },
+    rate: {
+      start: lastWeekStart,
+      end: today,
     },
   };
 };
@@ -45,13 +53,13 @@ export const importGoogleCalendar = async () => {
   try {
     const dateRanges = getDateRanges();
     console.log("Fetching events for range:", {
-      start: dateRanges.insights.start.toISOString(),
-      end: dateRanges.schedule.end.toISOString(),
+      start: dateRanges.review.start.toISOString(),
+      end: dateRanges.plan.end.toISOString(),
     });
 
     const events = await googleCalendarService.getCalendarEvents(
-      dateRanges.insights.start,
-      dateRanges.schedule.end
+      dateRanges.review.start,
+      dateRanges.plan.end
     );
 
     console.log("Fetched events count:", events?.length);
