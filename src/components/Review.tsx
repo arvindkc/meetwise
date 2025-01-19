@@ -7,13 +7,13 @@ import {
   DAYS_AGO,
 } from "../services/calendarService";
 
-export function Insights() {
+export function Review() {
   const { meetings, targetHours } = useSettingsStore();
   const dateRanges = getDateRanges();
   const historicalMeetings = filterMeetingsByDateRange(
     meetings,
-    dateRanges.insights.start,
-    dateRanges.insights.end
+    dateRanges.review.start,
+    dateRanges.review.end
   );
 
   return (

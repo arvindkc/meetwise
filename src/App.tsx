@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "./stores/settingsStore";
-import { Schedule } from "./components/Schedule";
-import { Insights } from "./components/Insights";
+import { Plan } from "./components/Plan";
+import { Review } from "./components/Review";
+import { Rate } from "./components/Rate";
 import { Header } from "./components/Header";
 import { cn } from "@/lib/utils";
 import { googleCalendarService } from "./services/googleCalendarService";
@@ -10,8 +11,8 @@ function App() {
   const { meetings, setMeetings, clearAllData, initializeStore, isLoading } =
     useSettingsStore();
   const [useMockData, setUseMockData] = useState(false);
-  const [activeTab, setActiveTab] = useState<"schedule" | "insights">(
-    "schedule"
+  const [activeTab, setActiveTab] = useState<"review" | "rate" | "plan">(
+    "review"
   );
 
   useEffect(() => {
@@ -40,32 +41,52 @@ function App() {
           setUseMockData={setUseMockData}
         />
 
-        <div className="flex space-x-1 mb-6">
-          <button
-            onClick={() => setActiveTab("schedule")}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-md",
-              activeTab === "schedule"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            )}
-          >
-            Schedule
-          </button>
-          <button
-            onClick={() => setActiveTab("insights")}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-md",
-              activeTab === "insights"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            )}
-          >
-            Insights
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveTab("review")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md",
+                activeTab === "review"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              )}
+            >
+              Review
+            </button>
+            <button
+              onClick={() => setActiveTab("rate")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md",
+                activeTab === "rate"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              )}
+            >
+              Rate
+            </button>
+            <button
+              onClick={() => setActiveTab("plan")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md",
+                activeTab === "plan"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              )}
+            >
+              Plan
+            </button>
+          </div>
+          <div className="h-px bg-gray-200 mb-4" />
         </div>
 
-        {activeTab === "schedule" ? <Schedule /> : <Insights />}
+        {activeTab === "review" ? (
+          <Review />
+        ) : activeTab === "rate" ? (
+          <Rate />
+        ) : (
+          <Plan />
+        )}
       </div>
     </div>
   );
