@@ -1,5 +1,15 @@
 import { CalendarEvent } from "@/types/calendar";
 
+declare const gapi: {
+  client: {
+    oauth2: {
+      userinfo: {
+        get: () => Promise<{ result: { email: string } }>;
+      };
+    };
+  };
+};
+
 const GOOGLE_API_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/gmail.send",
@@ -29,6 +39,7 @@ export interface GoogleCalendarService {
     endDate?: Date
   ) => Promise<CalendarEvent[]>;
   getAuth: () => Promise<string>;
+  getUserEmail: () => Promise<string>;
 }
 
 export class GoogleCalendarServiceImpl implements GoogleCalendarService {
@@ -133,8 +144,6 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
       orderBy: "startTime",
     } as GoogleCalendarParams);
 
-    console.log("Found events:", response.result.items.length);
-
     const filteredEvents = response.result.items.filter((event) => {
       // Filter out events with no other attendees
       const hasOtherAttendees = (event.attendees?.length ?? 0) > 1;
@@ -151,7 +160,6 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
       return hasOtherAttendees && !isAllDay && !isHoliday;
     });
 
-    console.log("After filtering:", filteredEvents.length);
     return filteredEvents.map((event) => ({
       id: event.id || crypto.randomUUID(),
       title: event.summary || "Untitled Event",
@@ -180,6 +188,11 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
     await this.authenticate();
     if (!this.accessToken) throw new Error("Not authenticated");
     return this.accessToken;
+  }
+
+  async getUserEmail(): Promise<string> {
+    const response = await gapi.client.oauth2.userinfo.get();
+    return response.result.email;
   }
 }
 

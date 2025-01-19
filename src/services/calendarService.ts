@@ -11,16 +11,6 @@ export const getDateRanges = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Log date ranges for debugging
-  console.log("Date Ranges:", {
-    start: new Date(
-      today.getTime() - DAYS_AGO * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    end: new Date(
-      today.getTime() + DAYS_AHEAD * 24 * 60 * 60 * 1000
-    ).toISOString(),
-  });
-
   const nextWeek = new Date(today);
   nextWeek.setDate(today.getDate() + DAYS_AHEAD);
   nextWeek.setHours(23, 59, 59, 999);
@@ -52,10 +42,6 @@ export const getDateRanges = () => {
 export const importGoogleCalendar = async () => {
   try {
     const dateRanges = getDateRanges();
-    console.log("Fetching events for range:", {
-      start: dateRanges.review.start.toISOString(),
-      end: dateRanges.plan.end.toISOString(),
-    });
 
     const events = await googleCalendarService.getCalendarEvents(
       dateRanges.review.start,

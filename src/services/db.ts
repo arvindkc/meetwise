@@ -37,13 +37,11 @@ export class MeetWiseDB extends Dexie {
   }
 
   async setMeeting(meeting: Meeting): Promise<void> {
-    console.log("Storing meeting:", meeting.id, meeting.title);
     await this.meetings.put(meeting);
   }
 
   async getAllMeetings(): Promise<Meeting[]> {
     const meetings = await this.meetings.toArray();
-    console.log("Retrieved meetings count:", meetings.length);
     return meetings;
   }
 
@@ -124,7 +122,9 @@ export class MeetWiseDB extends Dexie {
     meetingId: string,
     status: MeetingStatus
   ): Promise<void> {
-    await this.meetingStatus.put({ id: meetingId, value: status });
+    await this.transaction("rw", this.meetingStatus, async () => {
+      await this.meetingStatus.put({ id: meetingId, value: status });
+    });
   }
 
   async getAllMeetingStatus(): Promise<Record<string, MeetingStatus>> {

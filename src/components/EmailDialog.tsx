@@ -2,7 +2,12 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@radix-ui/react-dialog";
 import { Meeting } from "@/types";
 import { ampEmailService } from "@/services/ampEmailService";
 
@@ -63,7 +68,10 @@ export function EmailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogTitle>Send Report</DialogTitle>
+        <DialogTitle className="text-lg font-semibold">Send Report</DialogTitle>
+        <DialogDescription className="sr-only">
+          Add email recipients to send the meeting report
+        </DialogDescription>
         <div className="space-y-4 mt-4">
           {recipients.map((recipient, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -75,6 +83,7 @@ export function EmailDialog({
                   newRecipients[index].email = e.target.value;
                   setRecipients(newRecipients);
                 }}
+                aria-label={`Recipient ${index + 1} email`}
               />
               {recipients.length > 1 && (
                 <Button
@@ -82,6 +91,7 @@ export function EmailDialog({
                   size="sm"
                   onClick={() => removeRecipient(index)}
                   className="p-2"
+                  aria-label={`Remove recipient ${index + 1}`}
                 >
                   <Cross1Icon className="h-4 w-4" />
                 </Button>
