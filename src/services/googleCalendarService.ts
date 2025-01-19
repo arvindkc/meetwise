@@ -1,6 +1,9 @@
 import { CalendarEvent } from "@/types/calendar";
 
-const GOOGLE_API_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+const GOOGLE_API_SCOPES = [
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+];
 const DISCOVERY_DOC =
   "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
 
@@ -25,9 +28,10 @@ export interface GoogleCalendarService {
     startDate?: Date,
     endDate?: Date
   ) => Promise<CalendarEvent[]>;
+  getAuth: () => Promise<string>;
 }
 
-class GoogleCalendarServiceImpl implements GoogleCalendarService {
+export class GoogleCalendarServiceImpl implements GoogleCalendarService {
   private tokenClient: TokenClient | null;
   private gapiInited: boolean;
   private accessToken: string | null;
@@ -170,6 +174,12 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
           })
         : new Date().toLocaleDateString("en-US", { weekday: "long" }),
     }));
+  }
+
+  async getAuth() {
+    await this.authenticate();
+    if (!this.accessToken) throw new Error("Not authenticated");
+    return this.accessToken;
   }
 }
 

@@ -53,6 +53,7 @@
     "date-fns": "^3.6.0",
     "dexie": "^4.0.11",
     "embla-carousel-react": "^8.3.0",
+    "googleapis": "^144.0.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
     "next-themes": "^0.3.0",
