@@ -101,9 +101,15 @@ export function Header({
               setIsImporting(true);
               await googleCalendarService.authenticate();
               const meetings = await importGoogleCalendar();
-              setMeetings(meetings);
+
+              if (meetings.length === 0) {
+                alert("No meetings found in the specified date range");
+              } else {
+                setMeetings(meetings);
+              }
             } catch (error) {
               console.error("Error importing from Google Calendar:", error);
+              alert("Failed to import calendar. Please try again.");
             } finally {
               setIsImporting(false);
             }

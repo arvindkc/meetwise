@@ -10,10 +10,20 @@ import { MeetingCard } from "./MeetingCard";
 import { useSettingsStore } from "../stores/settingsStore";
 import { ExportInstructions } from "./ExportInstructions";
 import type { Meeting, MeetingStats } from "../types";
+import {
+  getDateRanges,
+  filterMeetingsByDateRange,
+} from "../services/calendarService";
 
 export function Schedule() {
   const { meetings: storedMeetings, targetHours } = useSettingsStore();
-  const [meetings, setLocalMeetings] = useState<Meeting[]>(storedMeetings);
+  const dateRanges = getDateRanges();
+  const filteredMeetings = filterMeetingsByDateRange(
+    storedMeetings,
+    dateRanges.schedule.start,
+    dateRanges.schedule.end
+  );
+  const [meetings, setLocalMeetings] = useState<Meeting[]>(filteredMeetings);
   const [stats, setStats] = useState<MeetingStats>({
     totalHours: storedMeetings.reduce(
       (acc, meeting) => acc + meeting.duration,
@@ -33,7 +43,12 @@ export function Schedule() {
   });
 
   useEffect(() => {
-    setLocalMeetings(storedMeetings);
+    const filtered = filterMeetingsByDateRange(
+      storedMeetings,
+      dateRanges.schedule.start,
+      dateRanges.schedule.end
+    );
+    setLocalMeetings(filtered);
   }, [storedMeetings]);
 
   useEffect(() => {
