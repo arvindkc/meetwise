@@ -8,7 +8,6 @@ import {
 import { StatsPanel } from "./StatsPanel";
 import { MeetingCard } from "./MeetingCard";
 import { useSettingsStore } from "../stores/settingsStore";
-import { ExportInstructions } from "./ExportInstructions";
 import type { Meeting, MeetingStats } from "../types";
 import {
   getDateRanges,
@@ -122,7 +121,6 @@ export function Plan() {
 
   return (
     <div className="space-y-6">
-      <ExportInstructions />
       <StatsPanel stats={stats} />
 
       <DragDropContext onDragEnd={handleDragEnd}>
