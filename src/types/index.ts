@@ -16,6 +16,7 @@ export interface Meeting {
   preworkIcon?: string;
   showActions?: boolean;
   comment?: string;
+  rating?: number;
 }
 
 export interface Comment {

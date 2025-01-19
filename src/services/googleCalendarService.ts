@@ -8,6 +8,16 @@ interface TokenClient {
   requestAccessToken: () => void;
 }
 
+interface GoogleCalendarParams {
+  calendarId: string;
+  timeMin: string;
+  timeMax?: string;
+  showDeleted: boolean;
+  singleEvents: boolean;
+  orderBy: string;
+  maxResults?: number;
+}
+
 export interface GoogleCalendarService {
   initializeGoogleApi: (clientId: string) => Promise<void>;
   authenticate: () => void;
@@ -113,10 +123,11 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
       calendarId: "primary",
       timeMin: startDate.toISOString(),
       timeMax: endDate.toISOString(),
+      maxResults: 2500,
       showDeleted: false,
       singleEvents: true,
       orderBy: "startTime",
-    });
+    } as GoogleCalendarParams);
 
     console.log("Found events:", response.result.items.length);
 
