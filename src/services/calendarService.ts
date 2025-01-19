@@ -4,8 +4,8 @@ import { CalendarEvent } from "@/types/calendar";
 import { googleCalendarService } from "@/services/googleCalendarService";
 
 // Constants for date ranges
-const DAYS_AGO = 30;
-const DAYS_AHEAD = 7;
+export const DAYS_AGO = 30;
+export const DAYS_AHEAD = 7;
 
 export const getDateRanges = () => {
   const today = new Date();
@@ -108,15 +108,6 @@ export const filterMeetingsByDateRange = (
   start: Date,
   end: Date
 ) => {
-  console.log(
-    "Filtering meetings:",
-    meetings.length,
-    "between",
-    start,
-    "and",
-    end
-  );
-
   const filtered = meetings
     .filter((meeting) => {
       const meetingTime = new Date(meeting.startTime).getTime();
@@ -126,7 +117,5 @@ export const filterMeetingsByDateRange = (
       ...meeting,
       rank: index + 1, // Reset rank to start from 1
     }));
-
-  console.log("Filtered meetings:", filtered.length);
   return filtered;
 };

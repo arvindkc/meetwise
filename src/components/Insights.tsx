@@ -1,11 +1,14 @@
 import { useSettingsStore } from "../stores/settingsStore";
+import { WeeklyMeetingChart } from "./WeeklyMeetingChart";
+import { WeeklyTimeDistribution } from "./WeeklyTimeDistribution";
 import {
   getDateRanges,
   filterMeetingsByDateRange,
+  DAYS_AGO,
 } from "../services/calendarService";
 
 export function Insights() {
-  const { meetings } = useSettingsStore();
+  const { meetings, targetHours } = useSettingsStore();
   const dateRanges = getDateRanges();
   const historicalMeetings = filterMeetingsByDateRange(
     meetings,
@@ -16,8 +19,15 @@ export function Insights() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Meeting Insights</h2>
-      <p>Historical meetings from past 90 days: {historicalMeetings.length}</p>
-      {/* Add your insights content here */}
+      <p>
+        Historical meetings from past {DAYS_AGO} days:{" "}
+        {historicalMeetings.length}
+      </p>
+      <WeeklyMeetingChart meetings={historicalMeetings} />
+      <WeeklyTimeDistribution
+        meetings={historicalMeetings}
+        targetHours={targetHours}
+      />
     </div>
   );
 }
