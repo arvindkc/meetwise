@@ -90,72 +90,75 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
     });
   }
 
-  async getCalendarEvents(startDate: Date = new Date(), endDate?: Date) {
+  async getCalendarEvents(
+    startDate: Date = new Date(),
+    endDate: Date = new Date()
+  ) {
     if (!this.accessToken) {
       throw new Error("Not authenticated");
     }
-
-    // Default end date to end of next week if not provided
-    const defaultEndDate = new Date();
-    defaultEndDate.setDate(defaultEndDate.getDate() + 7); // 1 week from today
-
-    const timeMin = startDate.toISOString();
-    const timeMax = (endDate || defaultEndDate).toISOString();
 
     // Wait for GAPI to be fully initialized
     if (!this.gapiInited) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
+    console.log(
+      "Fetching Google Calendar events from:",
+      startDate,
+      "to:",
+      endDate
+    );
     const response = await window.gapi.client.calendar.events.list({
       calendarId: "primary",
-      timeMin,
-      timeMax,
+      timeMin: startDate.toISOString(),
+      timeMax: endDate.toISOString(),
       showDeleted: false,
       singleEvents: true,
       orderBy: "startTime",
     });
 
-    return response.result.items
-      .filter((event) => {
-        // Filter out events with no other attendees
-        const hasOtherAttendees = (event.attendees?.length ?? 0) > 1;
+    console.log("Found events:", response.result.items.length);
 
-        // Filter out all-day events (they have date but no dateTime)
-        const isAllDay = event.start?.date && !event.start?.dateTime;
+    const filteredEvents = response.result.items.filter((event) => {
+      // Filter out events with no other attendees
+      const hasOtherAttendees = (event.attendees?.length ?? 0) > 1;
 
-        // Filter out holidays (usually marked with 'holiday' in transparency or eventType)
-        const isHoliday =
-          event.transparency === "transparent" ||
-          event.eventType === "holiday" ||
-          event.summary?.toLowerCase().includes("holiday");
+      // Filter out all-day events (they have date but no dateTime)
+      const isAllDay = event.start?.date && !event.start?.dateTime;
 
-        return hasOtherAttendees && !isAllDay && !isHoliday;
-      })
-      .map((event) => ({
-        id: event.id || crypto.randomUUID(),
-        title: event.summary || "Untitled Event",
-        startTime:
-          event.start?.dateTime ||
-          event.start?.date ||
-          new Date().toISOString(),
-        endTime:
-          event.end?.dateTime || event.end?.date || new Date().toISOString(),
-        duration:
-          event.start?.dateTime && event.end?.dateTime
-            ? (new Date(event.end.dateTime).getTime() -
-                new Date(event.start.dateTime).getTime()) /
-              (1000 * 60 * 60)
-            : 1,
-        location: event.location || "",
-        description: event.description || "",
-        participants: event.attendees?.map((a) => a.email) || [],
-        dayOfWeek: event.start?.dateTime
-          ? new Date(event.start.dateTime).toLocaleDateString("en-US", {
-              weekday: "long",
-            })
-          : new Date().toLocaleDateString("en-US", { weekday: "long" }),
-      }));
+      // Filter out holidays
+      const isHoliday =
+        event.transparency === "transparent" ||
+        event.eventType === "holiday" ||
+        event.summary?.toLowerCase().includes("holiday");
+
+      return hasOtherAttendees && !isAllDay && !isHoliday;
+    });
+
+    console.log("After filtering:", filteredEvents.length);
+    return filteredEvents.map((event) => ({
+      id: event.id || crypto.randomUUID(),
+      title: event.summary || "Untitled Event",
+      startTime:
+        event.start?.dateTime || event.start?.date || new Date().toISOString(),
+      endTime:
+        event.end?.dateTime || event.end?.date || new Date().toISOString(),
+      duration:
+        event.start?.dateTime && event.end?.dateTime
+          ? (new Date(event.end.dateTime).getTime() -
+              new Date(event.start.dateTime).getTime()) /
+            (1000 * 60 * 60)
+          : 1,
+      location: event.location || "",
+      description: event.description || "",
+      participants: event.attendees?.map((a) => a.email) || [],
+      dayOfWeek: event.start?.dateTime
+        ? new Date(event.start.dateTime).toLocaleDateString("en-US", {
+            weekday: "long",
+          })
+        : new Date().toLocaleDateString("en-US", { weekday: "long" }),
+    }));
   }
 }
 

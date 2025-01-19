@@ -1,11 +1,24 @@
 import type { Meeting } from "@/types";
 
+// Helper function to create dates relative to today
+const getRelativeDate = (
+  daysFromNow: number,
+  hours: number,
+  minutes: number = 0
+) => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + daysFromNow);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+};
+
 export const mockMeetings: Meeting[] = [
   {
     id: "1",
     title: "Q1 Strategy Planning",
-    startTime: "2024-01-15T09:00:00Z",
-    endTime: "2024-01-15T11:00:00Z",
+    startTime: getRelativeDate(0, 9), // Today at 9 AM
+    endTime: getRelativeDate(0, 11), // Today at 11 AM
     duration: 2,
     rank: 1,
     location: "Main Conference Room",
@@ -36,8 +49,8 @@ export const mockMeetings: Meeting[] = [
   {
     id: "2",
     title: "Product Review",
-    startTime: "2024-01-15T14:00:00Z",
-    endTime: "2024-01-15T15:30:00Z",
+    startTime: getRelativeDate(1, 14), // Tomorrow at 2 PM
+    endTime: getRelativeDate(1, 15, 30), // Tomorrow at 3:30 PM
     duration: 1.5,
     rank: 2,
     location: "Virtual - Zoom",
@@ -56,8 +69,8 @@ export const mockMeetings: Meeting[] = [
   {
     id: "3",
     title: "Team Weekly Sync",
-    startTime: "2024-01-16T10:00:00Z",
-    endTime: "2024-01-16T11:00:00Z",
+    startTime: getRelativeDate(2, 10), // 2 days from now at 10 AM
+    endTime: getRelativeDate(2, 11), // 2 days from now at 11 AM
     duration: 1,
     rank: 3,
     location: "Meeting Room 2",
@@ -83,8 +96,8 @@ export const mockMeetings: Meeting[] = [
   {
     id: "4",
     title: "Client Presentation",
-    startTime: "2024-01-16T15:00:00Z",
-    endTime: "2024-01-16T16:30:00Z",
+    startTime: getRelativeDate(3, 15), // 3 days from now at 3 PM
+    endTime: getRelativeDate(3, 16, 30), // 3 days from now at 4:30 PM
     duration: 1.5,
     rank: 4,
     location: "Client Office",
@@ -102,8 +115,8 @@ export const mockMeetings: Meeting[] = [
   {
     id: "5",
     title: "HR Training Session",
-    startTime: "2024-01-17T13:00:00Z",
-    endTime: "2024-01-17T15:00:00Z",
+    startTime: getRelativeDate(4, 13), // 4 days from now at 1 PM
+    endTime: getRelativeDate(4, 15), // 4 days from now at 3 PM
     duration: 2,
     rank: 5,
     location: "Training Room",
