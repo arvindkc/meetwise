@@ -12,6 +12,7 @@ import { googleCalendarService } from "@/services/googleCalendarService";
 import { importGoogleCalendar } from "@/services/calendarService";
 import { sendEmail } from "@/services/emailService";
 import { db } from "@/services/db";
+import { ExportInstructions } from "./ExportInstructions";
 // import { mockMeetings } from "@/mockData";
 
 interface HeaderProps {
@@ -73,13 +74,16 @@ HeaderProps) {
     <div className="flex items-center justify-between mb-6">
       <h1 className="text-2xl font-bold">MeetWise</h1>
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          onClick={() => document.getElementById("file-upload")?.click()}
-        >
-          <UploadIcon className="w-4 h-4 mr-2" />
-          Import
-        </Button>
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            onClick={() => document.getElementById("file-upload")?.click()}
+          >
+            <UploadIcon className="w-4 h-4 mr-2" />
+            Import
+          </Button>
+          <ExportInstructions />
+        </div>
         <Input
           id="file-upload"
           type="file"
