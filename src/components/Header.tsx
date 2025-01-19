@@ -11,6 +11,7 @@ import { importCalendarData } from "@/services/calendarService";
 import { googleCalendarService } from "@/services/googleCalendarService";
 import { importGoogleCalendar } from "@/services/calendarService";
 import { sendEmail } from "@/services/emailService";
+import { db } from "@/services/db";
 // import { mockMeetings } from "@/mockData";
 
 interface HeaderProps {
@@ -25,10 +26,11 @@ export function Header({
   meetings,
   setMeetings,
   clearAllData,
-  // useMockData,
-  // setUseMockData,
-}: HeaderProps) {
+}: // useMockData,
+// setUseMockData,
+HeaderProps) {
   const [isImporting, setIsImporting] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -44,22 +46,28 @@ export function Header({
     }
   };
 
-  const handleClearData = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to clear all data? This cannot be undone."
-      )
-    ) {
+  const handleClearData = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to clear all data? This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsClearing(true);
+      await db.clearAll();
       clearAllData();
-      setMeetings([]);
-      // setUseMockData(false);
+    } catch (error) {
+      console.error("Failed to clear data:", error);
+    } finally {
+      setIsClearing(false);
     }
   };
 
-//   const handleMockData = () => {
-//     setMeetings(mockMeetings);
-//     setUseMockData(true);
-//   };
+  //   const handleMockData = () => {
+  //     setMeetings(mockMeetings);
+  //     setUseMockData(true);
+  //   };
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -83,8 +91,13 @@ export function Header({
           <EnvelopeClosedIcon className="w-4 h-4 mr-2" />
           Send Email
         </Button>
-        <Button variant="destructive" onClick={handleClearData}>
-          Clear All Data
+        <Button
+          variant="outline"
+          onClick={handleClearData}
+          disabled={isClearing}
+          className="text-destructive hover:text-destructive"
+        >
+          {isClearing ? "Clearing..." : "Clear Data"}
         </Button>
         {/* Removing mock data from the UI for now */}
         {/* <Button

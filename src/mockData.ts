@@ -45,6 +45,7 @@ export const mockMeetings: Meeting[] = [
     preworkIcon: "file-text",
     showActions: true,
     comment: "",
+    rating: 0,
   },
   {
     id: "2",
@@ -65,6 +66,7 @@ export const mockMeetings: Meeting[] = [
     preworkIcon: "file-text",
     showActions: true,
     comment: "",
+    rating: 0,
   },
   {
     id: "3",
@@ -92,6 +94,7 @@ export const mockMeetings: Meeting[] = [
     preworkIcon: "file-text",
     showActions: true,
     comment: "",
+    rating: 0,
   },
   {
     id: "4",
@@ -111,6 +114,7 @@ export const mockMeetings: Meeting[] = [
     preworkIcon: "file-text",
     showActions: true,
     comment: "",
+    rating: 0,
   },
   {
     id: "5",
@@ -130,5 +134,6 @@ export const mockMeetings: Meeting[] = [
     preworkIcon: "file-text",
     showActions: true,
     comment: "",
+    rating: 0,
   },
 ];

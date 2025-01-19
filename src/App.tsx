@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { googleCalendarService } from "./services/googleCalendarService";
 
 function App() {
-  const { meetings, setMeetings, clearAllData } = useSettingsStore();
+  const { meetings, setMeetings, clearAllData, initializeStore, isLoading } =
+    useSettingsStore();
   const [useMockData, setUseMockData] = useState(false);
   const [activeTab, setActiveTab] = useState<"schedule" | "insights">(
     "schedule"
@@ -17,7 +18,16 @@ function App() {
     googleCalendarService.initializeGoogleApi(
       import.meta.env.VITE_GOOGLE_CLIENT_ID
     );
-  }, []);
+    initializeStore();
+  }, [initializeStore]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">

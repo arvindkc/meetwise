@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { db } from "@/services/db";
 import type { MeetingComment, MeetingStatus, Meeting } from "../types";
 
 interface MeetingSettings {
@@ -35,98 +35,152 @@ interface SettingsState extends MeetingSettings {
   meetings: Meeting[];
   setMeetings: (meetings: Meeting[]) => void;
   clearAllData: () => void;
+  setMeetingRating: (meetingId: string, rating: number) => Promise<void>;
+  isLoading: boolean;
+  initializeStore: () => Promise<void>;
 }
 
-export const useSettingsStore = create<SettingsState>()(
-  persist(
-    (set) => ({
+export const useSettingsStore = create<SettingsState>((set) => ({
+  meetingIcons: {},
+  preworkIcons: {},
+  showActions: {},
+  meetingComments: {},
+  meetingStatus: {},
+  targetHours: 40,
+  meetings: [],
+  isLoading: true,
+
+  setMeetingIcon: (meetingId, icon) =>
+    set((state) => ({
+      meetingIcons: { ...state.meetingIcons, [meetingId]: icon },
+    })),
+
+  setPreworkIcon: (meetingId, icon) =>
+    set((state) => ({
+      preworkIcons: { ...state.preworkIcons, [meetingId]: icon },
+    })),
+
+  toggleActions: (meetingId) =>
+    set((state) => ({
+      showActions: {
+        ...state.showActions,
+        [meetingId]: !state.showActions[meetingId],
+      },
+    })),
+
+  setMeetingComment: (meetingId: string, comment: Comment) =>
+    set((state) => ({
+      meetingComments: {
+        ...state.meetingComments,
+        [meetingId]: Array.isArray(state.meetingComments[meetingId])
+          ? [...state.meetingComments[meetingId], comment]
+          : [comment],
+      },
+    })),
+
+  deleteMeetingComment: (meetingId: string, commentId: string) =>
+    set((state) => ({
+      meetingComments: {
+        ...state.meetingComments,
+        [meetingId]:
+          state.meetingComments[meetingId]?.filter((c) => c.id !== commentId) ||
+          [],
+      },
+    })),
+
+  updateMeetingComment: (
+    meetingId: string,
+    commentId: string,
+    newText: string
+  ) =>
+    set((state) => ({
+      meetingComments: {
+        ...state.meetingComments,
+        [meetingId]:
+          state.meetingComments[meetingId]?.map((c) =>
+            c.id === commentId ? { ...c, text: newText } : c
+          ) || [],
+      },
+    })),
+
+  setMeetingStatus: (meetingId: string, status: MeetingStatus) =>
+    set((state) => ({
+      meetingStatus: {
+        ...state.meetingStatus,
+        [meetingId]: status,
+      },
+    })),
+
+  setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
+
+  setMeetings: async (meetings) => {
+    await db.meetings.bulkPut(meetings);
+    set({ meetings });
+  },
+
+  clearAllData: async () => {
+    await Promise.all([
+      db.meetings.clear(),
+      db.meetingIcons.clear(),
+      db.preworkIcons.clear(),
+      db.showActions.clear(),
+      db.meetingComments.clear(),
+      db.meetingStatus.clear(),
+      db.settings.clear(),
+    ]);
+
+    set({
+      meetings: [],
       meetingIcons: {},
       preworkIcons: {},
       showActions: {},
       meetingComments: {},
       meetingStatus: {},
       targetHours: 40,
-      meetings: [],
+    });
+  },
 
-      setMeetingIcon: (meetingId, icon) =>
-        set((state) => ({
-          meetingIcons: { ...state.meetingIcons, [meetingId]: icon },
-        })),
+  initializeStore: async () => {
+    try {
+      const meetings = await db.meetings.toArray();
+      const targetHours = (await db.getSetting<number>("targetHours")) ?? 40;
 
-      setPreworkIcon: (meetingId, icon) =>
-        set((state) => ({
-          preworkIcons: { ...state.preworkIcons, [meetingId]: icon },
-        })),
+      const [icons, prework, actions, comments, status] = await Promise.all([
+        db.meetingIcons.toArray(),
+        db.preworkIcons.toArray(),
+        db.showActions.toArray(),
+        db.meetingComments.toArray(),
+        db.meetingStatus.toArray(),
+      ]);
 
-      toggleActions: (meetingId) =>
-        set((state) => ({
-          showActions: {
-            ...state.showActions,
-            [meetingId]: !state.showActions[meetingId],
-          },
-        })),
-
-      setMeetingComment: (meetingId: string, comment: Comment) =>
-        set((state) => ({
-          meetingComments: {
-            ...state.meetingComments,
-            [meetingId]: Array.isArray(state.meetingComments[meetingId])
-              ? [...state.meetingComments[meetingId], comment]
-              : [comment],
-          },
-        })),
-
-      deleteMeetingComment: (meetingId: string, commentId: string) =>
-        set((state) => ({
-          meetingComments: {
-            ...state.meetingComments,
-            [meetingId]:
-              state.meetingComments[meetingId]?.filter(
-                (c) => c.id !== commentId
-              ) || [],
-          },
-        })),
-
-      updateMeetingComment: (
-        meetingId: string,
-        commentId: string,
-        newText: string
-      ) =>
-        set((state) => ({
-          meetingComments: {
-            ...state.meetingComments,
-            [meetingId]:
-              state.meetingComments[meetingId]?.map((c) =>
-                c.id === commentId ? { ...c, text: newText } : c
-              ) || [],
-          },
-        })),
-
-      setMeetingStatus: (meetingId: string, status: MeetingStatus) =>
-        set((state) => ({
-          meetingStatus: {
-            ...state.meetingStatus,
-            [meetingId]: status,
-          },
-        })),
-
-      setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
-
-      setMeetings: (meetings: Meeting[]) => set(() => ({ meetings })),
-
-      clearAllData: () =>
-        set(() => ({
-          meetingIcons: {},
-          preworkIcons: {},
-          showActions: {},
-          meetingComments: {},
-          meetingStatus: {},
-          targetHours: 40,
-          meetings: [],
-        })),
-    }),
-    {
-      name: "meeting-settings",
+      set({
+        meetings,
+        targetHours: targetHours,
+        meetingIcons: Object.fromEntries(icons.map((i) => [i.id, i.value])),
+        preworkIcons: Object.fromEntries(prework.map((p) => [p.id, p.value])),
+        showActions: Object.fromEntries(actions.map((a) => [a.id, a.value])),
+        meetingComments: Object.fromEntries(
+          comments.map((c) => [c.id, c.value])
+        ),
+        meetingStatus: Object.fromEntries(status.map((s) => [s.id, s.value])),
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Failed to initialize store:", error);
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  setMeetingRating: async (meetingId: string, rating: number) => {
+    const meeting = await db.meetings.get(meetingId);
+    if (meeting) {
+      const updatedMeeting = { ...meeting, rating };
+      await db.meetings.put(updatedMeeting);
+      set((state) => ({
+        meetings: state.meetings.map((m) =>
+          m.id === meetingId ? { ...m, rating } : m
+        ),
+      }));
+    }
+  },
+}));
