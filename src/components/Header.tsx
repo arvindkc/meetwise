@@ -11,7 +11,7 @@ import { importCalendarData } from "@/services/calendarService";
 import { googleCalendarService } from "@/services/googleCalendarService";
 import { importGoogleCalendar } from "@/services/calendarService";
 import { sendEmail } from "@/services/emailService";
-import { mockMeetings } from "@/mockData";
+// import { mockMeetings } from "@/mockData";
 
 interface HeaderProps {
   meetings: Meeting[];
@@ -25,8 +25,8 @@ export function Header({
   meetings,
   setMeetings,
   clearAllData,
-  useMockData,
-  setUseMockData,
+  // useMockData,
+  // setUseMockData,
 }: HeaderProps) {
   const [isImporting, setIsImporting] = useState(false);
 
@@ -52,14 +52,14 @@ export function Header({
     ) {
       clearAllData();
       setMeetings([]);
-      setUseMockData(false);
+      // setUseMockData(false);
     }
   };
 
-  const handleMockData = () => {
-    setMeetings(mockMeetings);
-    setUseMockData(true);
-  };
+//   const handleMockData = () => {
+//     setMeetings(mockMeetings);
+//     setUseMockData(true);
+//   };
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -86,13 +86,14 @@ export function Header({
         <Button variant="destructive" onClick={handleClearData}>
           Clear All Data
         </Button>
-        <Button
+        {/* Removing mock data from the UI for now */}
+        {/* <Button
           variant="outline"
           onClick={handleMockData}
           disabled={useMockData}
         >
           Use Mock Data
-        </Button>
+        </Button> */}
         <Button
           variant="outline"
           disabled={isImporting}
