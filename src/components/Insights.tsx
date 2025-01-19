@@ -18,16 +18,19 @@ export function Insights() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Meeting Insights</h2>
-      <p>
+      <h3 className="text-lg font-semibold">
         Historical meetings from past {DAYS_AGO} days:{" "}
         {historicalMeetings.length}
-      </p>
-      <WeeklyMeetingChart meetings={historicalMeetings} />
-      <WeeklyTimeDistribution
-        meetings={historicalMeetings}
-        targetHours={targetHours}
-      />
+      </h3>
+      <div className="border rounded-lg p-6 bg-card">
+        <WeeklyMeetingChart meetings={historicalMeetings} />
+      </div>
+      <div className="border rounded-lg p-6 bg-card">
+        <WeeklyTimeDistribution
+          meetings={historicalMeetings}
+          targetHours={targetHours}
+        />
+      </div>
     </div>
   );
 }
