@@ -13,22 +13,31 @@ const formatDuration = (duration: number): string => {
 };
 
 export class AmpEmailService {
-  private getGoogleCalendarLink(meeting: Meeting): string {
-    // Convert the ID and append hardcoded user email for the full Google Calendar event edit URL
-    const encodedId = btoa(`${meeting.id} kc@roblox.com`)
+  private getGoogleCalendarLink(
+    meeting: Meeting,
+    recipientEmail: string
+  ): string {
+    // Convert the ID and append recipient's email for the full Google Calendar event edit URL
+    const encodedId = btoa(`${meeting.id} ${recipientEmail}`)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     return `https://calendar.google.com/calendar/u/0/r/eventedit/${encodedId}`;
   }
 
-  private async generateAmpEmailContent(meetings: Meeting[]): Promise<string> {
+  private async generateAmpEmailContent(
+    meetings: Meeting[],
+    recipientEmail: string
+  ): Promise<string> {
     const dateRanges = getDateRanges();
 
     // Pre-fetch calendar links for all meetings
     const calendarLinks = new Map<string, string>();
     for (const meeting of meetings) {
-      calendarLinks.set(meeting.id, this.getGoogleCalendarLink(meeting));
+      calendarLinks.set(
+        meeting.id,
+        this.getGoogleCalendarLink(meeting, recipientEmail)
+      );
     }
 
     // Get meetings with changes (status or comments)
@@ -231,48 +240,53 @@ export class AmpEmailService {
     meetings: Meeting[],
     recipients: EmailRecipient[]
   ): Promise<void> {
-    try {
-      const accessToken = await googleCalendarService.getAuth();
-      const emailContent = await this.generateAmpEmailContent(meetings);
-
-      // Create email data with proper MIME formatting
-      const emailData = [
-        'Content-Type: text/html; charset="UTF-8"',
-        "MIME-Version: 1.0",
-        `To: ${recipients.map((r) => r.email).join(", ")}`,
-        "Subject: Meeting Changes Needed",
-        "",
-        emailContent,
-      ].join("\r\n");
-
-      // Properly encode Unicode characters
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(emailData);
-      const encodedEmail = btoa(String.fromCharCode(...bytes))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-
-      const response = await fetch(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            raw: encodedEmail,
-          }),
-        }
+    // Send separate emails to each recipient with their own calendar links
+    for (const recipient of recipients) {
+      const emailContent = await this.generateAmpEmailContent(
+        meetings,
+        recipient.email
       );
+      try {
+        const accessToken = await googleCalendarService.getAuth();
 
-      if (!response.ok) {
-        throw new Error("Failed to send email");
+        // Create email data with proper MIME formatting
+        const emailData = [
+          'Content-Type: text/html; charset="UTF-8"',
+          "MIME-Version: 1.0",
+          `To: ${recipient.email}`,
+          "Subject: Meeting Changes Needed",
+          "",
+          emailContent,
+        ].join("\r\n");
+
+        // Properly encode Unicode characters
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(emailData);
+        const encodedEmail = btoa(String.fromCharCode(...bytes))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+
+        const response = await fetch(
+          "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              raw: encodedEmail,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to send email");
+        }
+      } catch (error) {
+        console.error(`Failed to send email to ${recipient.email}:`, error);
       }
-    } catch (error) {
-      console.error("Failed to send email:", error);
-      throw error;
     }
   }
 }
