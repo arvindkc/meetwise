@@ -107,9 +107,31 @@ export function MeetingContent({ content, participants }: MeetingContentProps) {
     (participant) => !participant.includes("resource.calendar.google.com")
   );
 
+  // Create a linked title when the title is an anchor tag
+  const TitleContent = () => {
+    if (formattedContent.title.startsWith("<a href=")) {
+      const link = formattedContent.preReadLinks[0];
+      if (link) {
+        return (
+          <a
+            href={link.url}
+            className="font-medium text-blue-600 hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {link.title || "Meeting"}
+          </a>
+        );
+      }
+    }
+    return <span>{formattedContent.title}</span>;
+  };
+
   return (
     <div className="space-y-4">
-      <h3 className="font-medium">{formattedContent.title}</h3>
+      <h3 className="font-medium">
+        <TitleContent />
+      </h3>
       <PreReadMaterials links={formattedContent.preReadLinks} />
       <AgendaSection agenda={formattedContent.agenda} />
       <Attendees participants={filteredParticipants} />
