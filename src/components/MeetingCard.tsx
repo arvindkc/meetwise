@@ -174,12 +174,12 @@ export function MeetingCard({
           <div className="mb-4 space-y-1 text-xs text-gray-600">
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
-              <span>{meeting.location}</span>
+              <span className="text-sm">{meeting.location}</span>
             </div>
-            <div className="flex items-start">
+            {/* <div className="flex items-start">
               <Users className="w-3 h-3 mr-1 mt-0.5" />
               <span>{meeting.participants.join(", ")}</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-2 gap-1 mb-4">
