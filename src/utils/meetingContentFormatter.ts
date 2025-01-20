@@ -10,6 +10,12 @@ interface FormattedMeetingContent {
   rawContent: string;
 }
 
+interface ZoomInfo {
+  joinUrl: string;
+  meetingId: string;
+  passcode: string;
+}
+
 export const preserveAnchors = (
   content: string
 ): {
@@ -42,16 +48,10 @@ export const restoreAnchors = (content: string, anchors: string[]): string => {
   );
 };
 
-export const parseMeetingContent = (
-  content: string
-): FormattedMeetingContent => {
-  const { processedContent, anchors } = preserveAnchors(content);
-  const cleanContent = cleanHtml(processedContent);
-  const finalContent = restoreAnchors(cleanContent, anchors);
-  const sections = finalContent.split("\n\n").filter(Boolean);
-
-  // Extract pre-read links
-  const preReadLinks = anchors
+const extractPreReadLinks = (
+  anchors: string[]
+): Array<{ url: string; title: string }> => {
+  return anchors
     .map((anchor) => {
       const urlMatch = anchor.match(/href="([^"]+)"/);
       const titleMatch = anchor.match(/>([^<]+)</);
@@ -60,13 +60,15 @@ export const parseMeetingContent = (
         : null;
     })
     .filter((link): link is { url: string; title: string } => link !== null);
+};
 
-  // Extract attendees (only real email addresses, excluding SIP)
+const extractAttendees = (sections: string[]): string[] => {
   const attendeeSection = sections.find(
     (section) =>
       section.toLowerCase().includes("attendees:") || section.includes("@")
   );
-  const attendees = attendeeSection
+
+  return attendeeSection
     ? attendeeSection
         .split(/[,\n]/)
         .map((email) => email.trim())
@@ -77,25 +79,38 @@ export const parseMeetingContent = (
             !email.includes("@zoomcrc.com")
         )
     : [];
+};
 
-  // Extract agenda section
+const extractZoomInfo = (sections: string[]): ZoomInfo => {
+  const zoomSection = sections.find((section) =>
+    section.includes("Zoom Meeting")
+  );
+  return {
+    joinUrl: zoomSection?.match(/https:\/\/[^\s]+/)?.[0] || "",
+    meetingId: zoomSection?.match(/Meeting ID: ([^\s]+)/)?.[1] || "",
+    passcode: zoomSection?.match(/Passcode: ([^\s]+)/)?.[1] || "",
+  };
+};
+
+export const parseMeetingContent = (
+  content: string
+): FormattedMeetingContent => {
+  const { processedContent, anchors } = preserveAnchors(content);
+  const cleanContent = cleanHtml(processedContent);
+  const finalContent = restoreAnchors(cleanContent, anchors);
+  const sections = finalContent.split("\n\n").filter(Boolean);
+
+  const preReadLinks = extractPreReadLinks(anchors);
+  const attendees = extractAttendees(sections);
+  const zoomInfo = extractZoomInfo(sections);
+
   const agendaSection = sections.find((section) =>
     section.toLowerCase().startsWith("agenda:")
   );
 
-  // Extract Zoom info
-  const zoomSection = sections.find((section) =>
-    section.includes("Zoom Meeting")
-  );
-  const joinUrl = zoomSection?.match(/https:\/\/[^\s]+/)?.[0] || "";
-  const meetingId = zoomSection?.match(/Meeting ID: ([^\s]+)/)?.[1] || "";
-  const passcode = zoomSection?.match(/Passcode: ([^\s]+)/)?.[1] || "";
-
   return {
     title: sections[0] || "",
-    joinUrl,
-    meetingId,
-    passcode,
+    ...zoomInfo,
     phoneNumbers: [],
     preReadLinks,
     attendees,
