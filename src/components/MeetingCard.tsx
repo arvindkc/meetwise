@@ -24,12 +24,14 @@ interface MeetingCardProps {
   meeting: Meeting;
   isOverTarget: boolean;
   onAction: (action: string, meetingId: string) => void;
+  displayRank: number;
 }
 
 export function MeetingCard({
   meeting,
   isOverTarget,
   onAction,
+  displayRank,
 }: MeetingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { meetingStatus = {} } = useSettingsStore();
@@ -113,7 +115,7 @@ export function MeetingCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move" />
-            <span className="text-base font-semibold">{meeting.rank}</span>
+            <span className="text-base font-semibold">#{displayRank}</span>
             <span className="text-base">{meeting.title}</span>
             {getStatusCount() > 0 && (
               <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full">
