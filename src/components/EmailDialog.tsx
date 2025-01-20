@@ -36,10 +36,24 @@ export function EmailDialog({
     setIsSuccess(false);
   };
 
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  };
+
+  const hasValidEmails = () => {
+    const filledEmails = recipients.filter((r) => r.email.trim());
+    return (
+      filledEmails.length > 0 &&
+      filledEmails.every((r) => isValidEmail(r.email))
+    );
+  };
+
   const handleSendEmail = async () => {
-    const validRecipients = recipients.filter((r) => r.email.trim());
+    const validRecipients = recipients.filter(
+      (r) => r.email.trim() && isValidEmail(r.email)
+    );
     if (validRecipients.length === 0) {
-      alert("Please add at least one recipient");
+      alert("Please add at least one valid email address");
       return;
     }
 
@@ -146,7 +160,7 @@ export function EmailDialog({
           </Button>
           <Button
             onClick={handleSendEmail}
-            disabled={isSending || isSuccess}
+            disabled={isSending || isSuccess || !hasValidEmails()}
             className={`${
               isSuccess
                 ? "bg-green-600 hover:bg-green-600"
