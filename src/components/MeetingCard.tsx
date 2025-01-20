@@ -15,6 +15,7 @@ import {
   HomeIcon as MapPin,
   DragHandleHorizontalIcon,
   FileTextIcon,
+  GlobeIcon as Globe,
 } from "@radix-ui/react-icons";
 import type { Meeting, MeetingComment } from "../types";
 import { cn } from "../lib/utils";
@@ -110,6 +111,20 @@ export function MeetingCard({
     meeting.description &&
     parseMeetingContent(meeting.description).preReadLinks.length > 0;
 
+  const isExternalMeeting = () => {
+    const filteredParticipants = meeting.participants.filter(
+      (p) => !p.includes("resource.calendar.google.com")
+    );
+
+    const domains = filteredParticipants
+      .map((email) => email.split("@")[1])
+      .filter(Boolean);
+
+    const uniqueDomains = new Set(domains);
+
+    return uniqueDomains.size > 1;
+  };
+
   return (
     <Card
       className={cn(
@@ -127,6 +142,12 @@ export function MeetingCard({
               <FileTextIcon
                 className="h-4 w-4 text-blue-600"
                 aria-label="Has pre-read materials"
+              />
+            )}
+            {isExternalMeeting() && (
+              <Globe
+                className="h-4 w-4 text-purple-600"
+                aria-label="External meeting"
               />
             )}
             <div className="flex items-center">
@@ -175,17 +196,10 @@ export function MeetingCard({
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
               <span className="text-sm">
-                {meeting.location
-                  .split(/https:\/\/[^\s]+/)
-                  .filter(Boolean)
-                  .map((part) => part.trim())
-                  .join(" ")}
+                {meeting.location.split("https://").shift()?.trim() ||
+                  meeting.location}
               </span>
             </div>
-            {/* <div className="flex items-start">
-              <Users className="w-3 h-3 mr-1 mt-0.5" />
-              <span>{meeting.participants.join(", ")}</span>
-            </div> */}
           </div>
 
           <div className="grid grid-cols-2 gap-1 mb-4">
