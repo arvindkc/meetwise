@@ -38,6 +38,7 @@ export const cleanHtml = (content: string): string => {
     .replace(/<br>/g, "\n")
     .replace(/<(?!\/?(a|br))[^>]*>/g, "")
     .replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/g, "$2")
+    .replace(/[-_]{3,}/g, "")
     .trim();
 };
 
@@ -95,7 +96,12 @@ const extractZoomInfo = (sections: string[]): ZoomInfo => {
 export const parseMeetingContent = (
   content: string
 ): FormattedMeetingContent => {
-  const { processedContent, anchors } = preserveAnchors(content);
+  // Clean horizontal lines from raw content first
+  const initialCleanContent = content
+    .replace(/[-_]{3,}/g, "")
+    .replace(/\n[-_]{3,}\n/g, "\n");
+
+  const { processedContent, anchors } = preserveAnchors(initialCleanContent);
   const cleanContent = cleanHtml(processedContent);
   const finalContent = restoreAnchors(cleanContent, anchors);
   const sections = finalContent.split("\n\n").filter(Boolean);
