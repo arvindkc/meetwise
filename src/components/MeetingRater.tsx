@@ -9,20 +9,16 @@ import { cn } from "@/lib/utils";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { useSettingsStore } from "../stores/settingsStore";
-import type { MeetingComment } from "../types";
+import type { MeetingComment, Meeting, MeetingRating } from "../types";
 
 interface MeetingRaterProps {
-  meeting: {
-    id: string;
-    title: string;
-    startTime: string;
-    duration: number;
-  };
+  meeting: Meeting;
+  existingRating?: MeetingRating;
 }
 
-export function MeetingRater({ meeting }: MeetingRaterProps) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
+export function MeetingRater({ meeting, existingRating }: MeetingRaterProps) {
+  const [rating, setRating] = useState(existingRating?.rating || 0);
+  const [comment, setComment] = useState(existingRating?.comment || "");
   const [isExpanded, setIsExpanded] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");

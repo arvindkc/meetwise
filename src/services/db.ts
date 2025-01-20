@@ -1,4 +1,5 @@
 import Dexie, { Table } from "dexie";
+import { EncryptionManager } from "./encryption";
 import type {
   Meeting,
   MeetingComment,
@@ -6,165 +7,222 @@ import type {
   MeetingRating,
 } from "../types";
 
+interface EncryptedRecord {
+  id: string;
+  encrypted: string;
+}
+
 export class MeetWiseDB extends Dexie {
-  meetings!: Table<Meeting>;
-  meetingIcons!: Table<{ id: string; value: string }>;
-  preworkIcons!: Table<{ id: string; value: string }>;
-  showActions!: Table<{ id: string; value: boolean }>;
-  meetingComments!: Table<{ id: string; value: MeetingComment[] }>;
-  meetingStatus!: Table<{ id: string; value: MeetingStatus }>;
-  meetingRatings!: Table<{ id: string; value: MeetingRating }, string>;
-  settings!: Table<{ id: string; value: unknown }>;
+  meetings!: Table<EncryptedRecord>;
+  meetingIcons!: Table<EncryptedRecord>;
+  preworkIcons!: Table<EncryptedRecord>;
+  showActions!: Table<EncryptedRecord>;
+  meetingComments!: Table<EncryptedRecord>;
+  meetingStatus!: Table<EncryptedRecord>;
+  meetingRatings!: Table<EncryptedRecord>;
+  settings!: Table<EncryptedRecord>;
+
+  private encryption: EncryptionManager;
 
   constructor() {
     super("meetwise-db");
+    this.encryption = new EncryptionManager();
 
-    this.version(1).stores({
-      meetings: "id, title, startTime, endTime",
-      meetingIcons: "id, value",
-      preworkIcons: "id, value",
-      showActions: "id, value",
-      meetingComments: "id, value",
-      meetingStatus: "id, value",
-      meetingRatings: "id, value",
-      settings: "id, value",
+    this.version(2).stores({
+      meetings: "id, encrypted",
+      meetingIcons: "id, encrypted",
+      preworkIcons: "id, encrypted",
+      showActions: "id, encrypted",
+      meetingComments: "id, encrypted",
+      meetingStatus: "id, encrypted",
+      meetingRatings: "id, encrypted",
+      settings: "id, encrypted",
     });
   }
 
   // Meeting methods
   async getMeeting(id: string): Promise<Meeting | undefined> {
-    return await this.meetings.get(id);
+    const record = await this.meetings.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
   async setMeeting(meeting: Meeting): Promise<void> {
-    await this.meetings.put(meeting);
+    const encrypted = await this.encryption.encrypt(meeting);
+    await this.meetings.put({ id: meeting.id, encrypted });
   }
 
   async getAllMeetings(): Promise<Meeting[]> {
-    const meetings = await this.meetings.toArray();
-    return meetings;
+    const records = await this.meetings.toArray();
+    return Promise.all(
+      records.map(async (record) => this.encryption.decrypt(record.encrypted))
+    );
   }
 
   // Icon methods
-  async getMeetingIcon(meetingId: string): Promise<string | undefined> {
-    const icon = await this.meetingIcons.get(meetingId);
-    return icon?.value;
+  async getMeetingIcon(id: string): Promise<string | undefined> {
+    const record = await this.meetingIcons.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
-  async setMeetingIcon(meetingId: string, icon: string): Promise<void> {
-    await this.meetingIcons.put({ id: meetingId, value: icon });
+  async setMeetingIcon(id: string, icon: string): Promise<void> {
+    const encrypted = await this.encryption.encrypt(icon);
+    await this.meetingIcons.put({ id, encrypted });
   }
 
   async getAllMeetingIcons(): Promise<Record<string, string>> {
-    const icons = await this.meetingIcons.toArray();
-    return Object.fromEntries(icons.map((i) => [i.id, i.value]));
+    const records = await this.meetingIcons.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<string>(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Prework icon methods
-  async getPreworkIcon(meetingId: string): Promise<string | undefined> {
-    const icon = await this.preworkIcons.get(meetingId);
-    return icon?.value;
+  async getPreworkIcon(id: string): Promise<string | undefined> {
+    const record = await this.preworkIcons.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
-  async setPreworkIcon(meetingId: string, icon: string): Promise<void> {
-    await this.preworkIcons.put({ id: meetingId, value: icon });
+  async setPreworkIcon(id: string, icon: string): Promise<void> {
+    const encrypted = await this.encryption.encrypt(icon);
+    await this.preworkIcons.put({ id, encrypted });
   }
 
   async getAllPreworkIcons(): Promise<Record<string, string>> {
-    const icons = await this.preworkIcons.toArray();
-    return Object.fromEntries(icons.map((i) => [i.id, i.value]));
+    const records = await this.preworkIcons.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<string>(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Show actions methods
-  async getShowActions(meetingId: string): Promise<boolean | undefined> {
-    const actions = await this.showActions.get(meetingId);
-    return actions?.value;
+  async getShowActions(id: string): Promise<boolean | undefined> {
+    const record = await this.showActions.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
-  async setShowActions(meetingId: string, show: boolean): Promise<void> {
-    await this.showActions.put({ id: meetingId, value: show });
+  async setShowActions(id: string, show: boolean): Promise<void> {
+    const encrypted = await this.encryption.encrypt(show);
+    await this.showActions.put({ id, encrypted });
   }
 
   async getAllShowActions(): Promise<Record<string, boolean>> {
-    const actions = await this.showActions.toArray();
-    return Object.fromEntries(actions.map((a) => [a.id, a.value]));
+    const records = await this.showActions.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<boolean>(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Comment methods
-  async getMeetingComments(
-    meetingId: string
-  ): Promise<MeetingComment[] | undefined> {
-    const comments = await this.meetingComments.get(meetingId);
-    return comments?.value;
+  async getMeetingComments(id: string): Promise<MeetingComment[] | undefined> {
+    const record = await this.meetingComments.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
   async setMeetingComments(
-    meetingId: string,
+    id: string,
     comments: MeetingComment[]
   ): Promise<void> {
-    await this.meetingComments.put({ id: meetingId, value: comments });
+    const encrypted = await this.encryption.encrypt(comments);
+    await this.meetingComments.put({ id, encrypted });
   }
 
   async getAllMeetingComments(): Promise<Record<string, MeetingComment[]>> {
-    const comments = await this.meetingComments.toArray();
-    return Object.fromEntries(comments.map((c) => [c.id, c.value]));
+    const records = await this.meetingComments.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<MeetingComment[]>(
+          record.encrypted
+        ),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Status methods
-  async getMeetingStatus(
-    meetingId: string
-  ): Promise<MeetingStatus | undefined> {
-    const status = await this.meetingStatus.get(meetingId);
-    return status?.value;
+  async getMeetingStatus(id: string): Promise<MeetingStatus | undefined> {
+    const record = await this.meetingStatus.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
-  async setMeetingStatus(
-    meetingId: string,
-    status: MeetingStatus
-  ): Promise<void> {
-    await this.transaction("rw", this.meetingStatus, async () => {
-      await this.meetingStatus.put({ id: meetingId, value: status });
-    });
+  async setMeetingStatus(id: string, status: MeetingStatus): Promise<void> {
+    const encrypted = await this.encryption.encrypt(status);
+    await this.meetingStatus.put({ id, encrypted });
   }
 
   async getAllMeetingStatus(): Promise<Record<string, MeetingStatus>> {
-    const statuses = await this.meetingStatus.toArray();
-    return Object.fromEntries(statuses.map((s) => [s.id, s.value]));
+    const records = await this.meetingStatus.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<MeetingStatus>(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Rating methods
-  async getMeetingRating(
-    meetingId: string
-  ): Promise<MeetingRating | undefined> {
-    const rating = await this.meetingRatings.get(meetingId);
-    return rating?.value;
+  async getMeetingRating(id: string): Promise<MeetingRating | undefined> {
+    const record = await this.meetingRatings.get(id);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
-  async setMeetingRating(
-    meetingId: string,
-    rating: MeetingRating
-  ): Promise<void> {
-    await this.meetingRatings.put({ id: meetingId, value: rating });
+  async setMeetingRating(id: string, rating: MeetingRating): Promise<void> {
+    const encrypted = await this.encryption.encrypt(rating);
+    await this.meetingRatings.put({ id, encrypted });
   }
 
   async getAllMeetingRatings(): Promise<Record<string, MeetingRating>> {
-    const ratings = await this.meetingRatings.toArray();
-    return Object.fromEntries(ratings.map((r) => [r.id, r.value]));
+    const records = await this.meetingRatings.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt<MeetingRating>(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Settings methods
   async getSetting<T>(key: string): Promise<T | undefined> {
-    const setting = await this.settings.get(key);
-    return setting?.value as T;
+    const record = await this.settings.get(key);
+    if (!record) return undefined;
+    return this.encryption.decrypt(record.encrypted);
   }
 
   async setSetting<T>(key: string, value: T): Promise<void> {
-    await this.settings.put({ id: key, value });
+    const encrypted = await this.encryption.encrypt(value);
+    await this.settings.put({ id: key, encrypted });
   }
 
   async getAllSettings(): Promise<Record<string, unknown>> {
-    const settings = await this.settings.toArray();
-    return Object.fromEntries(settings.map((s) => [s.id, s.value]));
+    const records = await this.settings.toArray();
+    const decrypted = await Promise.all(
+      records.map(async (record) => ({
+        id: record.id,
+        value: await this.encryption.decrypt(record.encrypted),
+      }))
+    );
+    return Object.fromEntries(decrypted.map((item) => [item.id, item.value]));
   }
 
   // Clear methods
