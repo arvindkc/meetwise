@@ -14,11 +14,13 @@ import {
   PersonIcon as Users,
   HomeIcon as MapPin,
   DragHandleHorizontalIcon,
+  FileTextIcon,
 } from "@radix-ui/react-icons";
 import type { Meeting, MeetingComment } from "../types";
 import { cn } from "../lib/utils";
 import { useSettingsStore } from "../stores/settingsStore";
 import { MeetingContent } from "@/components/MeetingContent";
+import { parseMeetingContent } from "@/utils/meetingContentFormatter";
 
 interface MeetingCardProps {
   meeting: Meeting;
@@ -104,6 +106,10 @@ export function MeetingCard({
     });
   };
 
+  const hasPreRead =
+    meeting.description &&
+    parseMeetingContent(meeting.description).preReadLinks.length > 0;
+
   return (
     <Card
       className={cn(
@@ -117,6 +123,18 @@ export function MeetingCard({
             <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move" />
             <span className="text-base font-semibold">#{displayRank}</span>
             <span className="text-base">{meeting.title}</span>
+            {hasPreRead && (
+              <FileTextIcon
+                className="h-4 w-4 text-blue-600"
+                aria-label="Has pre-read materials"
+              />
+            )}
+            <div className="flex items-center">
+              <Users className="w-3 h-3 mr-1" />
+              <span className="text-sm text-gray-600">
+                {meeting.participants.length}
+              </span>
+            </div>
             {getStatusCount() > 0 && (
               <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full">
                 {getStatusCount()} action{getStatusCount() !== 1 ? "s" : ""}{" "}
@@ -147,10 +165,13 @@ export function MeetingCard({
 
       {isExpanded && (
         <CardContent className="px-2 pb-2">
+          {meeting.description && (
+            <MeetingContent
+              content={meeting.description}
+              participants={meeting.participants}
+            />
+          )}
           <div className="mb-4 space-y-1 text-xs text-gray-600">
-            {meeting.description && (
-              <MeetingContent content={meeting.description} />
-            )}
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
               <span>{meeting.location}</span>

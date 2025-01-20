@@ -6,6 +6,7 @@ interface FormattedMeetingContent {
   phoneNumbers: string[];
   preReadLinks: Array<{ url: string; title: string }>;
   attendees: string[];
+  agenda: string;
   rawContent: string;
 }
 
@@ -30,6 +31,7 @@ export const cleanHtml = (content: string): string => {
   return content
     .replace(/<br>/g, "\n")
     .replace(/<(?!\/?(a|br))[^>]*>/g, "")
+    .replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/g, "$2")
     .trim();
 };
 
@@ -59,13 +61,27 @@ export const parseMeetingContent = (
     })
     .filter((link): link is { url: string; title: string } => link !== null);
 
-  // Extract attendees (emails)
-  const attendees =
-    sections
-      .find((section) => section.includes("@"))
-      ?.split(",")
-      .map((email) => email.trim())
-      .filter((email) => email.includes("@")) ?? [];
+  // Extract attendees (only real email addresses, excluding SIP)
+  const attendeeSection = sections.find(
+    (section) =>
+      section.toLowerCase().includes("attendees:") || section.includes("@")
+  );
+  const attendees = attendeeSection
+    ? attendeeSection
+        .split(/[,\n]/)
+        .map((email) => email.trim())
+        .filter(
+          (email) =>
+            email.includes("@") &&
+            !email.toLowerCase().includes("join by sip") &&
+            !email.includes("@zoomcrc.com")
+        )
+    : [];
+
+  // Extract agenda section
+  const agendaSection = sections.find((section) =>
+    section.toLowerCase().startsWith("agenda:")
+  );
 
   // Extract Zoom info
   const zoomSection = sections.find((section) =>
@@ -75,31 +91,15 @@ export const parseMeetingContent = (
   const meetingId = zoomSection?.match(/Meeting ID: ([^\s]+)/)?.[1] || "";
   const passcode = zoomSection?.match(/Passcode: ([^\s]+)/)?.[1] || "";
 
-  // Extract phone numbers more accurately, excluding Zoom numbers
-  const phoneNumbers =
-    finalContent
-      .match(/\+\d+(\s\d+)*/g)
-      ?.filter((num) => {
-        // Filter out common Zoom phone number patterns
-        const zoomPatterns = [
-          /^\+1[0-9]{10}$/, // US/Canada format
-          /^\+\d{2}\s\d{2}\s\d{3}\s\d{4}$/, // International format
-          /^\+\d{2}\s\d{2}\s\d{4}\s\d{4}$/, // Alternative international format
-        ];
-        return !zoomPatterns.some((pattern) =>
-          pattern.test(num.replace(/\s/g, ""))
-        );
-      })
-      .map((num) => num.trim()) ?? [];
-
   return {
     title: sections[0] || "",
     joinUrl,
     meetingId,
     passcode,
-    phoneNumbers,
+    phoneNumbers: [],
     preReadLinks,
     attendees,
+    agenda: agendaSection || "",
     rawContent: finalContent,
   };
 };

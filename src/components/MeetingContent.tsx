@@ -2,18 +2,24 @@ import { parseMeetingContent } from "@/utils/meetingContentFormatter";
 
 interface MeetingContentProps {
   content: string;
+  participants: string[];
 }
 
-export function MeetingContent({ content }: MeetingContentProps) {
+export function MeetingContent({ content, participants }: MeetingContentProps) {
   const formattedContent = parseMeetingContent(content);
+  const filteredParticipants = participants.filter(
+    (participant) => !participant.includes("resource.calendar.google.com")
+  );
 
   return (
     <div className="space-y-4">
       <h3 className="font-medium">{formattedContent.title}</h3>
 
       {formattedContent.preReadLinks.length > 0 && (
-        <div className="space-y-1">
-          <h4 className="text-sm font-medium">Pre-read Materials:</h4>
+        <div className="space-y-1 bg-blue-50 p-3 rounded-md">
+          <h4 className="text-sm font-medium text-blue-800">
+            Pre-read Materials:
+          </h4>
           <ul className="text-sm space-y-1">
             {formattedContent.preReadLinks.map((link, index) => (
               <li key={index}>
@@ -23,7 +29,7 @@ export function MeetingContent({ content }: MeetingContentProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {link.title}
+                  {link.title || "Agenda"}
                 </a>
               </li>
             ))}
@@ -31,12 +37,28 @@ export function MeetingContent({ content }: MeetingContentProps) {
         </div>
       )}
 
-      {formattedContent.attendees.length > 0 && (
-        <div className="space-y-1">
+      {formattedContent.agenda && (
+        <div className="space-y-1 bg-green-50 p-3 rounded-md">
+          <h4 className="text-sm font-medium text-green-800">Agenda</h4>
+          <div className="text-sm text-green-900">
+            {formattedContent.agenda.replace(/^Agenda:\s*/i, "")}
+          </div>
+        </div>
+      )}
+
+      {filteredParticipants.length > 0 && (
+        <div className="space-y-1 bg-gray-50 p-3 rounded-md">
           <h4 className="text-sm font-medium">Attendees:</h4>
-          <p className="text-sm text-gray-600">
-            {formattedContent.attendees.join(", ")}
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {filteredParticipants.map((participant, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm bg-gray-100 text-gray-800"
+              >
+                {participant}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
@@ -62,17 +84,6 @@ export function MeetingContent({ content }: MeetingContentProps) {
               Passcode: {formattedContent.passcode}
             </p>
           )}
-        </div>
-      )}
-
-      {formattedContent.phoneNumbers.length > 0 && (
-        <div className="text-xs text-gray-500 space-y-1">
-          <h4 className="font-medium">Dial-in Numbers:</h4>
-          <div className="space-y-0.5">
-            {formattedContent.phoneNumbers.map((number, index) => (
-              <p key={index}>{number}</p>
-            ))}
-          </div>
         </div>
       )}
     </div>
