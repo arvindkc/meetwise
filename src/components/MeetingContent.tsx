@@ -6,13 +6,18 @@ const PreReadMaterials = ({
 }: {
   links: Array<{ url: string; title: string }>;
 }) => {
-  if (links.length === 0) return null;
+  // Filter out Zoom links
+  const filteredLinks = links.filter(
+    (link) => !link.url.toLowerCase().includes("zoom")
+  );
+
+  if (filteredLinks.length === 0) return null;
 
   return (
     <div className="space-y-1 bg-blue-50 p-3 rounded-md">
       <h4 className="text-sm font-medium text-blue-800">Pre-read Materials:</h4>
       <ul className="text-sm space-y-1">
-        {links.map((link, index) => (
+        {filteredLinks.map((link, index) => (
           <li key={index}>
             <a
               href={link.url}

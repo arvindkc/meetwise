@@ -174,7 +174,13 @@ export function MeetingCard({
           <div className="mb-4 space-y-1 text-xs text-gray-600">
             <div className="flex items-center">
               <MapPin className="w-3 h-3 mr-1" />
-              <span className="text-sm">{meeting.location}</span>
+              <span className="text-sm">
+                {meeting.location
+                  .split(/https:\/\/[^\s]+/)
+                  .filter(Boolean)
+                  .map((part) => part.trim())
+                  .join(" ")}
+              </span>
             </div>
             {/* <div className="flex items-start">
               <Users className="w-3 h-3 mr-1 mt-0.5" />
