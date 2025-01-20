@@ -10,9 +10,9 @@ import { Meeting } from "@/types";
 import { importCalendarData } from "@/services/calendarService";
 import { googleCalendarService } from "@/services/googleCalendarService";
 import { importGoogleCalendar } from "@/services/calendarService";
-import { sendEmail } from "@/services/emailService";
 import { db } from "@/services/db";
 import { ExportInstructions } from "./ExportInstructions";
+import { EmailDialog } from "./EmailDialog";
 // import { mockMeetings } from "@/mockData";
 
 interface HeaderProps {
@@ -32,6 +32,8 @@ export function Header({
 HeaderProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [showEmailSuccess, setShowEmailSuccess] = useState(false);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -91,9 +93,9 @@ HeaderProps) {
           className="hidden"
           onChange={handleFileUpload}
         />
-        <Button variant="outline" onClick={() => sendEmail(meetings)}>
+        <Button variant="outline" onClick={() => setEmailDialogOpen(true)}>
           <EnvelopeClosedIcon className="w-4 h-4 mr-2" />
-          Send Email
+          {showEmailSuccess ? "Email Sent!" : "Send Email"}
         </Button>
         <Button
           variant="outline"
@@ -103,6 +105,7 @@ HeaderProps) {
         >
           {isClearing ? "Clearing..." : "Clear Data"}
         </Button>
+
         {/* Removing mock data from the UI for now */}
         {/* <Button
           variant="outline"
@@ -137,6 +140,16 @@ HeaderProps) {
           {isImporting ? "Importing..." : "Import from Google"}
         </Button>
       </div>
+
+      <EmailDialog
+        meetings={meetings}
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        onSuccess={() => {
+          setShowEmailSuccess(true);
+          setTimeout(() => setShowEmailSuccess(false), 2000);
+        }}
+      />
     </div>
   );
 }

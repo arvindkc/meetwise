@@ -24,11 +24,6 @@ interface MeetingRating {
   timestamp: string;
 }
 
-interface DBItem {
-  id: string;
-  value: unknown;
-}
-
 interface SettingsState extends MeetingSettings {
   meetingComments: Record<string, Comment[]>;
   setMeetingComment: (meetingId: string, comment: Comment) => void;
@@ -51,6 +46,7 @@ interface SettingsState extends MeetingSettings {
   isLoading: boolean;
   initializeStore: () => Promise<void>;
   meetingRatings: Record<string, MeetingRating>;
+  updateMeetings: (meetings: Meeting[]) => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -84,15 +80,17 @@ export const useSettingsStore = create<SettingsState>()(
           },
         })),
 
-      setMeetingComment: (meetingId: string, comment: Comment) =>
+      setMeetingComment: async (meetingId: string, comment: Comment) => {
+        const currentComments = (await db.getMeetingComments(meetingId)) || [];
+        const updatedComments = [...currentComments, comment];
+        await db.setMeetingComments(meetingId, updatedComments);
         set((state) => ({
           meetingComments: {
             ...state.meetingComments,
-            [meetingId]: Array.isArray(state.meetingComments[meetingId])
-              ? [...state.meetingComments[meetingId], comment]
-              : [comment],
+            [meetingId]: updatedComments,
           },
-        })),
+        }));
+      },
 
       deleteMeetingComment: (meetingId: string, commentId: string) =>
         set((state) => ({
@@ -120,13 +118,15 @@ export const useSettingsStore = create<SettingsState>()(
           },
         })),
 
-      setMeetingStatus: (meetingId: string, status: MeetingStatus) =>
+      setMeetingStatus: async (meetingId: string, status: MeetingStatus) => {
+        await db.setMeetingStatus(meetingId, status);
         set((state) => ({
           meetingStatus: {
             ...state.meetingStatus,
             [meetingId]: status,
           },
-        })),
+        }));
+      },
 
       setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
 
@@ -172,12 +172,9 @@ export const useSettingsStore = create<SettingsState>()(
               db.meetingStatus.toArray(),
             ]
           );
-
-          const ratings = await db.meetingRatings.toArray();
-
           set({
             meetings,
-            targetHours: targetHours,
+            targetHours,
             meetingIcons: Object.fromEntries(icons.map((i) => [i.id, i.value])),
             preworkIcons: Object.fromEntries(
               prework.map((p) => [p.id, p.value])
@@ -190,9 +187,6 @@ export const useSettingsStore = create<SettingsState>()(
             ),
             meetingStatus: Object.fromEntries(
               status.map((s) => [s.id, s.value])
-            ),
-            meetingRatings: Object.fromEntries(
-              ratings.map((r: DBItem) => [r.id, r.value as MeetingRating])
             ),
             isLoading: false,
           });
@@ -210,6 +204,11 @@ export const useSettingsStore = create<SettingsState>()(
             [meetingId]: rating,
           },
         }));
+      },
+
+      updateMeetings: async (meetings: Meeting[]) => {
+        await Promise.all(meetings.map((meeting) => db.setMeeting(meeting)));
+        set({ meetings });
       },
     }),
     {

@@ -71,7 +71,7 @@ export function Plan() {
     });
   };
 
-  const handleMeetingAction = (action: string, meetingId: string) => {
+  const handleMeetingAction = async (action: string, meetingId: string) => {
     const store = useSettingsStore.getState();
     const currentStatus = store.meetingStatus?.[meetingId] || {
       needsCancel: false,
@@ -100,7 +100,7 @@ export function Plan() {
           : currentStatus.prepRequired,
     };
 
-    store.setMeetingStatus?.(meetingId, newStatus);
+    await store.setMeetingStatus(meetingId, newStatus);
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -116,6 +116,7 @@ export function Plan() {
     }));
 
     setLocalMeetings(updatedItems);
+    useSettingsStore.getState().updateMeetings(updatedItems);
     updateStats(updatedItems);
   };
 

@@ -1,6 +1,19 @@
 import { CalendarEvent } from "@/types/calendar";
 
-const GOOGLE_API_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+declare const gapi: {
+  client: {
+    oauth2: {
+      userinfo: {
+        get: () => Promise<{ result: { email: string } }>;
+      };
+    };
+  };
+};
+
+const GOOGLE_API_SCOPES = [
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+];
 const DISCOVERY_DOC =
   "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
 
@@ -25,9 +38,11 @@ export interface GoogleCalendarService {
     startDate?: Date,
     endDate?: Date
   ) => Promise<CalendarEvent[]>;
+  getAuth: () => Promise<string>;
+  getUserEmail: () => Promise<string>;
 }
 
-class GoogleCalendarServiceImpl implements GoogleCalendarService {
+export class GoogleCalendarServiceImpl implements GoogleCalendarService {
   private tokenClient: TokenClient | null;
   private gapiInited: boolean;
   private accessToken: string | null;
@@ -129,8 +144,6 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
       orderBy: "startTime",
     } as GoogleCalendarParams);
 
-    console.log("Found events:", response.result.items.length);
-
     const filteredEvents = response.result.items.filter((event) => {
       // Filter out events with no other attendees
       const hasOtherAttendees = (event.attendees?.length ?? 0) > 1;
@@ -147,7 +160,6 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
       return hasOtherAttendees && !isAllDay && !isHoliday;
     });
 
-    console.log("After filtering:", filteredEvents.length);
     return filteredEvents.map((event) => ({
       id: event.id || crypto.randomUUID(),
       title: event.summary || "Untitled Event",
@@ -170,6 +182,17 @@ class GoogleCalendarServiceImpl implements GoogleCalendarService {
           })
         : new Date().toLocaleDateString("en-US", { weekday: "long" }),
     }));
+  }
+
+  async getAuth() {
+    await this.authenticate();
+    if (!this.accessToken) throw new Error("Not authenticated");
+    return this.accessToken;
+  }
+
+  async getUserEmail(): Promise<string> {
+    const response = await gapi.client.oauth2.userinfo.get();
+    return response.result.email;
   }
 }
 
