@@ -35,6 +35,18 @@ Data Handling:
 - Local storage for persistence
 - Email integration via Gmail compose URL
 
+Data Security:
+- Web Crypto API for encryption
+- AES-GCM encryption algorithm
+- PBKDF2 key derivation
+- Secure salt generation and storage
+
+Data Storage:
+- IndexedDB for encrypted data
+- Dexie.js for IndexedDB management
+- Encrypted records for all sensitive data
+- Automatic key management
+
 ## Project Structure
 
 /src
@@ -92,6 +104,16 @@ Data Handling:
 - Modular component architecture
 - Responsive design with Tailwind
 - State persistence with Zustand
+
+## Security Features
+
+### Encryption
+- Uses browser's native Web Crypto API
+- AES-GCM encryption for all sensitive data
+- Secure key derivation using PBKDF2
+- Unique IV (Initialization Vector) per encryption
+- Automatic salt generation and management
+
 
 ## License
 

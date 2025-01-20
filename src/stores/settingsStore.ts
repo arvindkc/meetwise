@@ -51,7 +51,7 @@ interface SettingsState extends MeetingSettings {
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       meetingIcons: {},
       preworkIcons: {},
       showActions: {},
@@ -62,23 +62,30 @@ export const useSettingsStore = create<SettingsState>()(
       isLoading: true,
       meetingRatings: {},
 
-      setMeetingIcon: (meetingId, icon) =>
+      setMeetingIcon: async (meetingId, icon) => {
+        await db.setMeetingIcon(meetingId, icon);
         set((state) => ({
           meetingIcons: { ...state.meetingIcons, [meetingId]: icon },
-        })),
+        }));
+      },
 
-      setPreworkIcon: (meetingId, icon) =>
+      setPreworkIcon: async (meetingId, icon) => {
+        await db.setPreworkIcon(meetingId, icon);
         set((state) => ({
           preworkIcons: { ...state.preworkIcons, [meetingId]: icon },
-        })),
+        }));
+      },
 
-      toggleActions: (meetingId) =>
+      toggleActions: async (meetingId) => {
+        const newValue = !get().showActions[meetingId];
+        await db.setShowActions(meetingId, newValue);
         set((state) => ({
           showActions: {
             ...state.showActions,
-            [meetingId]: !state.showActions[meetingId],
+            [meetingId]: newValue,
           },
-        })),
+        }));
+      },
 
       setMeetingComment: async (meetingId: string, comment: Comment) => {
         const currentComments = (await db.getMeetingComments(meetingId)) || [];
@@ -92,31 +99,37 @@ export const useSettingsStore = create<SettingsState>()(
         }));
       },
 
-      deleteMeetingComment: (meetingId: string, commentId: string) =>
+      deleteMeetingComment: async (meetingId: string, commentId: string) => {
+        const currentComments = (await db.getMeetingComments(meetingId)) || [];
+        const updatedComments = currentComments.filter(
+          (c) => c.id !== commentId
+        );
+        await db.setMeetingComments(meetingId, updatedComments);
         set((state) => ({
           meetingComments: {
             ...state.meetingComments,
-            [meetingId]:
-              state.meetingComments[meetingId]?.filter(
-                (c) => c.id !== commentId
-              ) || [],
+            [meetingId]: updatedComments,
           },
-        })),
+        }));
+      },
 
-      updateMeetingComment: (
+      updateMeetingComment: async (
         meetingId: string,
         commentId: string,
         newText: string
-      ) =>
+      ) => {
+        const currentComments = (await db.getMeetingComments(meetingId)) || [];
+        const updatedComments = currentComments.map((c) =>
+          c.id === commentId ? { ...c, text: newText } : c
+        );
+        await db.setMeetingComments(meetingId, updatedComments);
         set((state) => ({
           meetingComments: {
             ...state.meetingComments,
-            [meetingId]:
-              state.meetingComments[meetingId]?.map((c) =>
-                c.id === commentId ? { ...c, text: newText } : c
-              ) || [],
+            [meetingId]: updatedComments,
           },
-        })),
+        }));
+      },
 
       setMeetingStatus: async (meetingId: string, status: MeetingStatus) => {
         await db.setMeetingStatus(meetingId, status);
@@ -128,24 +141,18 @@ export const useSettingsStore = create<SettingsState>()(
         }));
       },
 
-      setTargetHours: (hours: number) => set(() => ({ targetHours: hours })),
+      setTargetHours: async (hours: number) => {
+        await db.setSetting("targetHours", hours);
+        set(() => ({ targetHours: hours }));
+      },
 
       setMeetings: async (meetings) => {
-        await db.meetings.bulkPut(meetings);
+        await Promise.all(meetings.map((meeting) => db.setMeeting(meeting)));
         set({ meetings });
       },
 
       clearAllData: async () => {
-        await Promise.all([
-          db.meetings.clear(),
-          db.meetingIcons.clear(),
-          db.preworkIcons.clear(),
-          db.showActions.clear(),
-          db.meetingComments.clear(),
-          db.meetingStatus.clear(),
-          db.settings.clear(),
-        ]);
-
+        await db.clearAll();
         set({
           meetings: [],
           meetingIcons: {},
@@ -153,41 +160,47 @@ export const useSettingsStore = create<SettingsState>()(
           showActions: {},
           meetingComments: {},
           meetingStatus: {},
+          meetingRatings: {},
           targetHours: 40,
         });
       },
 
       initializeStore: async () => {
         try {
-          const meetings = await db.meetings.toArray();
-          const targetHours =
-            (await db.getSetting<number>("targetHours")) ?? 40;
-
-          const [icons, prework, actions, comments, status] = await Promise.all(
-            [
-              db.meetingIcons.toArray(),
-              db.preworkIcons.toArray(),
-              db.showActions.toArray(),
-              db.meetingComments.toArray(),
-              db.meetingStatus.toArray(),
-            ]
-          );
-          set({
+          const [
             meetings,
             targetHours,
-            meetingIcons: Object.fromEntries(icons.map((i) => [i.id, i.value])),
-            preworkIcons: Object.fromEntries(
-              prework.map((p) => [p.id, p.value])
-            ),
-            showActions: Object.fromEntries(
-              actions.map((a) => [a.id, a.value])
-            ),
-            meetingComments: Object.fromEntries(
-              comments.map((c) => [c.id, c.value])
-            ),
-            meetingStatus: Object.fromEntries(
-              status.map((s) => [s.id, s.value])
-            ),
+            meetingIcons,
+            preworkIcons,
+            showActions,
+            meetingComments,
+            meetingStatus,
+            meetingRatings,
+          ] = await Promise.all([
+            db.getAllMeetings(),
+            db.getSetting<number>("targetHours"),
+            db.getAllMeetingIcons(),
+            db.getAllPreworkIcons(),
+            db.getAllShowActions(),
+            db.getAllMeetingComments(),
+            db.getAllMeetingStatus(),
+            db.getAllMeetingRatings(),
+          ]);
+
+          // Sort meetings by rank when loading
+          const sortedMeetings = meetings.sort(
+            (a, b) => (a.rank || 0) - (b.rank || 0)
+          );
+
+          set({
+            meetings: sortedMeetings,
+            targetHours: targetHours ?? 40,
+            meetingIcons,
+            preworkIcons,
+            showActions,
+            meetingComments,
+            meetingStatus,
+            meetingRatings,
             isLoading: false,
           });
         } catch (error) {
@@ -197,7 +210,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       setMeetingRating: async (meetingId: string, rating: MeetingRating) => {
-        await db.meetingRatings.put({ id: meetingId, value: rating });
+        await db.setMeetingRating(meetingId, rating);
         set((state) => ({
           meetingRatings: {
             ...state.meetingRatings,
@@ -207,12 +220,40 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       updateMeetings: async (meetings: Meeting[]) => {
-        await Promise.all(meetings.map((meeting) => db.setMeeting(meeting)));
-        set({ meetings });
+        // Ensure meetings are sorted by rank before saving
+        const sortedMeetings = [...meetings].sort(
+          (a, b) => (a.rank || 0) - (b.rank || 0)
+        );
+
+        // Save each meeting with its rank
+        await Promise.all(
+          sortedMeetings.map(async (meeting) => {
+            await db.setMeeting({
+              ...meeting,
+              rank: meeting.rank || 0,
+            });
+          })
+        );
+
+        set({ meetings: sortedMeetings });
       },
     }),
     {
       name: "settings-storage",
+      partialize: (state) => ({
+        targetHours: state.targetHours,
+        isLoading: state.isLoading,
+      }),
+      version: 2,
+      migrate: (persistedState: unknown, version) => {
+        if (version === 1) {
+          return {
+            targetHours: 40,
+            isLoading: false,
+          };
+        }
+        return persistedState as { targetHours: number; isLoading: boolean };
+      },
     }
   )
 );

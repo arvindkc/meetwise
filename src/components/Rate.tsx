@@ -4,9 +4,18 @@ import {
   getDateRanges,
   filterMeetingsByDateRange,
 } from "../services/calendarService";
+import { useEffect } from "react";
 
 export function Rate() {
-  const { meetings } = useSettingsStore();
+  const { meetings, meetingRatings, initializeStore } = useSettingsStore();
+
+  useEffect(() => {
+    const loadData = async () => {
+      await initializeStore();
+    };
+    loadData();
+  }, []);
+
   const dateRanges = getDateRanges();
   const lastWeekMeetings = filterMeetingsByDateRange(
     meetings,
@@ -21,7 +30,11 @@ export function Rate() {
       </h3>
       <div className="space-y-2">
         {lastWeekMeetings.map((meeting) => (
-          <MeetingRater key={meeting.id} meeting={meeting} />
+          <MeetingRater
+            key={meeting.id}
+            meeting={meeting}
+            existingRating={meetingRatings[meeting.id]}
+          />
         ))}
       </div>
     </div>

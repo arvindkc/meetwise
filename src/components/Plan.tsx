@@ -21,7 +21,7 @@ export function Plan() {
     storedMeetings,
     dateRanges.plan.start,
     dateRanges.plan.end
-  );
+  ).sort((a, b) => (a.rank || 0) - (b.rank || 0));
   const [meetings, setLocalMeetings] = useState<Meeting[]>(filteredMeetings);
   const [stats, setStats] = useState<MeetingStats>({
     totalHours: storedMeetings.reduce(
@@ -46,7 +46,7 @@ export function Plan() {
       storedMeetings,
       dateRanges.plan.start,
       dateRanges.plan.end
-    );
+    ).sort((a, b) => (a.rank || 0) - (b.rank || 0));
     setLocalMeetings(filtered);
   }, [storedMeetings]);
 
@@ -106,18 +106,41 @@ export function Plan() {
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
+    const store = useSettingsStore.getState();
+
+    // Create new items array with updated positions
     const items = Array.from(meetings);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
+    // Update ranks starting from a high number to ensure proper sorting
     const updatedItems = items.map((item, index) => ({
       ...item,
-      rank: index + 1,
+      rank: (index + 1) * 1000, // Using larger intervals for potential future insertions
     }));
 
+    // Update store first, preserving the exact order of updatedItems
+    const finalMeetings = store.meetings.map((meeting) => {
+      const updatedMeeting = updatedItems.find(
+        (item) => item.id === meeting.id
+      );
+      if (updatedMeeting) {
+        return updatedMeeting;
+      }
+      // If meeting is not in updatedItems, preserve its original state
+      return {
+        ...meeting,
+        rank: meeting.rank || 0, // Ensure all meetings have a rank
+      };
+    });
+
+    // Important: Sort the meetings before updating the store
+    const sortedMeetings = finalMeetings.sort(
+      (a, b) => (a.rank || 0) - (b.rank || 0)
+    );
+
+    store.updateMeetings(sortedMeetings);
     setLocalMeetings(updatedItems);
-    useSettingsStore.getState().updateMeetings(updatedItems);
-    updateStats(updatedItems);
   };
 
   return (
@@ -156,6 +179,7 @@ export function Plan() {
                           meeting={meeting}
                           isOverTarget={runningTotal > currentTargetHours}
                           onAction={handleMeetingAction}
+                          displayRank={index + 1}
                         />
                       </div>
                     )}
