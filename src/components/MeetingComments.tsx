@@ -54,7 +54,7 @@ export function MeetingComments({ meetingId }: MeetingCommentsProps) {
   return (
     <div className="flex flex-col gap-2 w-full mt-2">
       {comments.map((comment) => (
-        <div key={comment.id} className="bg-gray-50 p-3 rounded-md">
+        <div key={comment.id} className="bg-white p-3 rounded-md border">
           {editingCommentId === comment.id ? (
             <div className="flex gap-2">
               <Textarea
@@ -107,7 +107,7 @@ export function MeetingComments({ meetingId }: MeetingCommentsProps) {
         </div>
       ))}
 
-      <div className="bg-gray-50 p-3 rounded-md">
+      <div className="bg-white p-3 rounded-md border">
         <Textarea
           placeholder="Add a comment..."
           value={comment}
