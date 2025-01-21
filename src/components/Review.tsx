@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
 import { WeeklyMeetingLoad } from "./WeeklyMeetingLoad";
 import { WeeklyFreeMeetingHours } from "./WeeklyFreeMeetingHours";
@@ -23,37 +23,52 @@ interface DashboardItem {
 }
 
 export function Review() {
-  const { meetings, targetHours } = useSettingsStore();
+  const { meetings: storedMeetings, targetHours } = useSettingsStore();
   const dateRanges = getDateRanges();
-  const historicalMeetings = filterMeetingsByDateRange(
-    meetings,
-    dateRanges.review.start,
-    dateRanges.review.end
+  const [meetings, setMeetings] = useState(
+    filterMeetingsByDateRange(
+      storedMeetings,
+      dateRanges.review.start,
+      dateRanges.review.end
+    )
   );
+  const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([]);
 
-  const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([
-    {
-      id: "weekly-chart",
-      title: "Weekly Meeting Hours",
-      component: <WeeklyMeetingLoad meetings={historicalMeetings} />,
-    },
-    {
-      id: "time-distribution",
-      title: "Free Meeting Hours",
-      component: (
-        <WeeklyFreeMeetingHours
-          meetings={historicalMeetings}
-          targetHours={targetHours}
-        />
-      ),
-    },
-    {
-      id: "meeting-type-distribution",
-      title: "Meeting Type Distribution",
-      component: (
-        <WeeklyMeetingTypeDistribution meetings={historicalMeetings} />
-      ),
-    },
+  useEffect(() => {
+    const filtered = filterMeetingsByDateRange(
+      storedMeetings,
+      dateRanges.review.start,
+      dateRanges.review.end
+    );
+    setMeetings(filtered);
+
+    setDashboardItems([
+      {
+        id: "weekly-chart",
+        title: "Weekly Meeting Hours",
+        component: <WeeklyMeetingLoad meetings={filtered} />,
+      },
+      {
+        id: "time-distribution",
+        title: "Free Meeting Hours",
+        component: (
+          <WeeklyFreeMeetingHours
+            meetings={filtered}
+            targetHours={targetHours}
+          />
+        ),
+      },
+      {
+        id: "meeting-type-distribution",
+        title: "Meeting Type Distribution",
+        component: <WeeklyMeetingTypeDistribution meetings={filtered} />,
+      },
+    ]);
+  }, [
+    storedMeetings,
+    dateRanges.review.start,
+    dateRanges.review.end,
+    targetHours,
   ]);
 
   const handleDragEnd = (result: DropResult) => {
@@ -69,8 +84,7 @@ export function Review() {
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">
-        Historical meetings from past {DAYS_AGO} days:{" "}
-        {historicalMeetings.length}
+        Historical meetings from past {DAYS_AGO} days: {meetings.length}
       </h3>
 
       <DragDropContext onDragEnd={handleDragEnd}>
