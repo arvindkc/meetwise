@@ -22,7 +22,7 @@ interface WeekData {
   freeHours: number;
 }
 
-export function WeeklyTimeDistribution({
+export function WeeklyFreeMeetingHours({
   meetings,
   targetHours,
 }: WeeklyTimeDistributionProps) {
@@ -60,7 +60,6 @@ export function WeeklyTimeDistribution({
 
   return (
     <div className="w-full h-[300px] mt-4">
-      <h3 className="text-lg font-semibold mb-4">Weekly Time Distribution</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={weeklyData}
