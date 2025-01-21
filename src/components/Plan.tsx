@@ -13,6 +13,7 @@ import {
   getDateRanges,
   filterMeetingsByDateRange,
 } from "../services/calendarService";
+import { MeetingInsights } from "./MeetingInsights";
 
 export function Plan() {
   const { meetings: storedMeetings, targetHours } = useSettingsStore();
@@ -145,6 +146,7 @@ export function Plan() {
 
   return (
     <div className="space-y-6">
+      <MeetingInsights meetings={meetings} />
       <StatsPanel stats={stats} />
 
       <DragDropContext onDragEnd={handleDragEnd}>
