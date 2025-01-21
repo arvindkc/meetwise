@@ -19,7 +19,7 @@ interface WeekData {
   totalHours: number;
 }
 
-export function WeeklyMeetingChart({ meetings }: WeeklyMeetingChartProps) {
+export function WeeklyMeetingLoad({ meetings }: WeeklyMeetingChartProps) {
   // Group meetings by week
   const weeklyData = meetings.reduce((acc: WeekData[], meeting) => {
     const meetingDate = new Date(meeting.startTime);
@@ -50,7 +50,6 @@ export function WeeklyMeetingChart({ meetings }: WeeklyMeetingChartProps) {
 
   return (
     <div className="w-full h-[300px] mt-4">
-      <h3 className="text-lg font-semibold mb-4">Weekly Meeting Hours</h3>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={weeklyData}

@@ -14,15 +14,20 @@ function App() {
   const [activeTab, setActiveTab] = useState<"review" | "rate" | "plan">(
     "review"
   );
+  const [storeInitialized, setStoreInitialized] = useState(false);
 
   useEffect(() => {
-    googleCalendarService.initializeGoogleApi(
-      import.meta.env.VITE_GOOGLE_CLIENT_ID
-    );
-    initializeStore();
+    const init = async () => {
+      await googleCalendarService.initializeGoogleApi(
+        import.meta.env.VITE_GOOGLE_CLIENT_ID
+      );
+      await initializeStore();
+      setStoreInitialized(true);
+    };
+    init();
   }, [initializeStore]);
 
-  if (isLoading) {
+  if (isLoading || !storeInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

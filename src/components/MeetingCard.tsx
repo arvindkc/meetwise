@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   TimerIcon as Clock,
   Cross2Icon as X,
@@ -17,10 +16,11 @@ import {
   FileTextIcon,
   GlobeIcon as Globe,
 } from "@radix-ui/react-icons";
-import type { Meeting, MeetingComment } from "../types";
+import type { Meeting } from "../types";
 import { cn } from "../lib/utils";
 import { useSettingsStore } from "../stores/settingsStore";
-import { MeetingContent } from "@/components/MeetingContent";
+import { MeetingContent } from "./MeetingContent";
+import { MeetingComments } from "./MeetingComments";
 import { parseMeetingContent } from "@/utils/meetingContentFormatter";
 
 interface MeetingCardProps {
@@ -44,50 +44,10 @@ export function MeetingCard({
     needsReschedule: false,
     prepRequired: false,
   };
-  const {
-    meetingComments = {},
-    setMeetingComment,
-    deleteMeetingComment,
-    updateMeetingComment,
-  } = useSettingsStore();
-  const [comment, setComment] = useState("");
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
 
   const getStatusCount = () => {
     return Object.values(status).filter(Boolean).length;
   };
-
-  const addComment = () => {
-    if (comment.trim()) {
-      const newComment = {
-        id: Date.now().toString(),
-        text: comment,
-        author: "You",
-        timestamp: new Date().toISOString(),
-      };
-
-      setMeetingComment(meeting.id, newComment);
-      setComment("");
-    }
-  };
-
-  const startEditing = (comment: MeetingComment) => {
-    setEditingCommentId(comment.id);
-    setEditText(comment.text);
-  };
-
-  const saveEdit = (commentId: string) => {
-    if (editText.trim()) {
-      updateMeetingComment(meeting.id, commentId, editText);
-      setEditingCommentId(null);
-      setEditText("");
-    }
-  };
-
-  const comments = Array.isArray(meetingComments[meeting.id])
-    ? meetingComments[meeting.id]
-    : [];
 
   const formatDuration = (hours: number) => {
     if (hours >= 1) {
@@ -115,13 +75,10 @@ export function MeetingCard({
     const filteredParticipants = meeting.participants.filter(
       (p) => !p.includes("resource.calendar.google.com")
     );
-
     const domains = filteredParticipants
       .map((email) => email.split("@")[1])
       .filter(Boolean);
-
     const uniqueDomains = new Set(domains);
-
     return uniqueDomains.size > 1;
   };
 
@@ -185,7 +142,7 @@ export function MeetingCard({
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="px-2 pb-2">
+        <CardContent className="px-2 pb-2 bg-white">
           {meeting.description && (
             <MeetingContent
               content={meeting.description}
@@ -244,73 +201,7 @@ export function MeetingCard({
               <MessageSquare className="w-3 h-3 mr-1" />
               <h4 className="font-medium text-sm">Comments</h4>
             </div>
-
-            {comments.map((comment) => (
-              <div key={comment.id} className="bg-gray-50 p-3 rounded-md">
-                {editingCommentId === comment.id ? (
-                  <div className="flex gap-2">
-                    <Textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="flex-1"
-                      rows={2}
-                    />
-                    <div className="flex flex-col gap-2">
-                      <Button size="sm" onClick={() => saveEdit(comment.id)}>
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setEditingCommentId(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm">{comment.text}</p>
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-xs text-gray-500">
-                        {comment.author} •{" "}
-                        {new Date(comment.timestamp).toLocaleDateString()}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEditing(comment)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() =>
-                            deleteMeetingComment(meeting.id, comment.id)
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-
-            <div className="flex space-x-2">
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="flex-1"
-                rows={1}
-              />
-              <Button onClick={addComment}>Add</Button>
-            </div>
+            <MeetingComments meetingId={meeting.id} />
           </div>
         </CardContent>
       )}

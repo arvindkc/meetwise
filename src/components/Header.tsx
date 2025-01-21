@@ -13,7 +13,7 @@ import { importGoogleCalendar } from "@/services/calendarService";
 import { db } from "@/services/db";
 import { ExportInstructions } from "./ExportInstructions";
 import { EmailDialog } from "./EmailDialog";
-// import { mockMeetings } from "@/mockData";
+import { mockMeetings } from "@/mockData";
 
 interface HeaderProps {
   meetings: Meeting[];
@@ -27,9 +27,9 @@ export function Header({
   meetings,
   setMeetings,
   clearAllData,
-}: // useMockData,
-// setUseMockData,
-HeaderProps) {
+  useMockData,
+  setUseMockData,
+}: HeaderProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
@@ -67,25 +67,25 @@ HeaderProps) {
     }
   };
 
-  //   const handleMockData = () => {
-  //     setMeetings(mockMeetings);
-  //     setUseMockData(true);
-  //   };
+  const handleMockData = () => {
+    setMeetings(mockMeetings);
+    setUseMockData(true);
+  };
 
   return (
     <div className="flex items-center justify-between mb-6">
-      <h1 className="text-2xl font-bold">MeetWise</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold">MeetWise</h1>
+        <ExportInstructions />
+      </div>
       <div className="flex gap-2">
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            onClick={() => document.getElementById("file-upload")?.click()}
-          >
-            <UploadIcon className="w-4 h-4 mr-2" />
-            Import
-          </Button>
-          <ExportInstructions />
-        </div>
+        <Button
+          variant="outline"
+          onClick={() => document.getElementById("file-upload")?.click()}
+        >
+          <UploadIcon className="w-4 h-4 mr-2" />
+          Import
+        </Button>
         <Input
           id="file-upload"
           type="file"
@@ -105,15 +105,14 @@ HeaderProps) {
         >
           {isClearing ? "Clearing..." : "Clear Data"}
         </Button>
-
-        {/* Removing mock data from the UI for now */}
-        {/* <Button
+        <Button
           variant="outline"
           onClick={handleMockData}
           disabled={useMockData}
         >
+          <CalendarIcon className="w-4 h-4 mr-2" />
           Use Mock Data
-        </Button> */}
+        </Button>
         <Button
           variant="outline"
           disabled={isImporting}

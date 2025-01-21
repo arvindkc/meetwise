@@ -5,6 +5,7 @@ import {
   filterMeetingsByDateRange,
 } from "../services/calendarService";
 import { useEffect } from "react";
+import { MeetingInsights } from "./MeetingInsights";
 
 export function Rate() {
   const { meetings, meetingRatings, initializeStore } = useSettingsStore();
@@ -25,6 +26,7 @@ export function Rate() {
 
   return (
     <div className="space-y-6">
+      <MeetingInsights meetings={lastWeekMeetings} />
       <h3 className="text-lg font-semibold">
         Rate meetings from the past week: {lastWeekMeetings.length}
       </h3>
