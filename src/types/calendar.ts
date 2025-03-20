@@ -9,3 +9,8 @@ export interface CalendarEvent {
   participants: string[];
   dayOfWeek: string;
 }
+
+export interface DateRange {
+  startDate: Date;
+  endDate: Date;
+}

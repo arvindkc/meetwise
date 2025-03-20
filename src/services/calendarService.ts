@@ -5,7 +5,19 @@ import { googleCalendarService } from "@/services/googleCalendarService";
 
 // Constants for date ranges
 export const DAYS_AGO = 90;
-export const DAYS_AHEAD = 7;
+export let DAYS_AHEAD = 7;
+
+// Function to update DAYS_AHEAD
+export const setDaysAhead = (days: number) => {
+  DAYS_AHEAD = days;
+  return DAYS_AHEAD;
+};
+
+// Calculate days between two dates
+export const getDaysBetween = (startDate: Date, endDate: Date): number => {
+  const difference = endDate.getTime() - startDate.getTime();
+  return Math.ceil(difference / (1000 * 3600 * 24));
+};
 
 export const getDateRanges = () => {
   const today = new Date();
@@ -39,16 +51,31 @@ export const getDateRanges = () => {
   };
 };
 
-export const importGoogleCalendar = async () => {
+export const importGoogleCalendar = async (dateRange?: {
+  startDate: Date;
+  endDate: Date;
+}) => {
   try {
+    // If no date range is provided, use the default date ranges
     const dateRanges = getDateRanges();
 
+    // Use provided date range or default to fetching both review and planned meetings
+    const startDate = dateRange?.startDate || dateRanges.review.start;
+    const endDate = dateRange?.endDate || dateRanges.plan.end;
+
+    // console.log(
+    //   "Fetching Google Calendar events from:",
+    //   startDate.toISOString(),
+    //   "to:",
+    //   endDate.toISOString()
+    // );
+
     const events = await googleCalendarService.getCalendarEvents(
-      dateRanges.review.start,
-      dateRanges.plan.end
+      startDate,
+      endDate
     );
 
-    console.log("Fetched events count:", events?.length);
+    // console.log("Fetched events count:", events?.length);
 
     if (!events || events.length === 0) {
       return [];
@@ -66,7 +93,7 @@ export const importGoogleCalendar = async () => {
       comment: "",
     }));
 
-    console.log("Transformed events count:", transformedEvents.length);
+    // console.log("Transformed events count:", transformedEvents.length);
     return transformedEvents;
   } catch (error) {
     console.error("Failed to import Google Calendar:", error);

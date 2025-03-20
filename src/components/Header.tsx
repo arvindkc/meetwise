@@ -7,13 +7,26 @@ import {
   CalendarIcon,
 } from "@radix-ui/react-icons";
 import { Meeting } from "@/types";
-import { importCalendarData } from "@/services/calendarService";
+import {
+  importCalendarData,
+  importGoogleCalendar,
+  setDaysAhead,
+  getDaysBetween,
+  DAYS_AGO,
+} from "@/services/calendarService";
 import { googleCalendarService } from "@/services/googleCalendarService";
-import { importGoogleCalendar } from "@/services/calendarService";
 import { db } from "@/services/db";
 import { ExportInstructions } from "./ExportInstructions";
 import { EmailDialog } from "./EmailDialog";
 import { mockMeetings } from "@/mockData";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "./ui/dialog";
 
 interface HeaderProps {
   meetings: Meeting[];
@@ -34,6 +47,20 @@ export function Header({
   const [isClearing, setIsClearing] = useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [showEmailSuccess, setShowEmailSuccess] = useState(false);
+  const [toDate, setToDate] = useState<Date>(getDefaultEndDate());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  // Calculate default end date (7 days from now)
+  function getDefaultEndDate(): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date;
+  }
+
+  // Format date for date input
+  const formatDateForInput = (date: Date): string => {
+    return date.toISOString().split("T")[0];
+  };
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -70,6 +97,44 @@ export function Header({
   const handleMockData = () => {
     setMeetings(mockMeetings);
     setUseMockData(true);
+  };
+
+  const handleGoogleImport = async () => {
+    try {
+      setIsImporting(true);
+      setDatePickerOpen(false); // Close the date picker dialog
+
+      // Update the DAYS_AHEAD parameter based on the selected end date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysAhead = getDaysBetween(today, toDate);
+      setDaysAhead(daysAhead);
+
+      await googleCalendarService.authenticate();
+
+      // Create the date range with DAYS_AGO as start and the selected end date
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - DAYS_AGO); // Use the constant
+      startDate.setHours(0, 0, 0, 0);
+
+      const dateRange = {
+        startDate: startDate,
+        endDate: toDate,
+      };
+
+      const meetings = await importGoogleCalendar(dateRange);
+
+      if (meetings.length === 0) {
+        alert("No meetings found in the specified date range");
+      } else {
+        setMeetings(meetings);
+      }
+    } catch (error) {
+      console.error("Error importing from Google Calendar:", error);
+      alert("Failed to import calendar. Please try again.");
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   return (
@@ -113,30 +178,14 @@ export function Header({
           <CalendarIcon className="w-4 h-4 mr-2" />
           Use Mock Data
         </Button>
+
         <Button
           variant="outline"
           disabled={isImporting}
-          onClick={async () => {
-            try {
-              setIsImporting(true);
-              await googleCalendarService.authenticate();
-              const meetings = await importGoogleCalendar();
-
-              if (meetings.length === 0) {
-                alert("No meetings found in the specified date range");
-              } else {
-                setMeetings(meetings);
-              }
-            } catch (error) {
-              console.error("Error importing from Google Calendar:", error);
-              alert("Failed to import calendar. Please try again.");
-            } finally {
-              setIsImporting(false);
-            }
-          }}
+          onClick={() => setDatePickerOpen(true)}
         >
           <CalendarIcon className="w-4 h-4 mr-2" />
-          {isImporting ? "Importing..." : "Import from Google"}
+          Import from Google
         </Button>
       </div>
 
@@ -149,6 +198,46 @@ export function Header({
           setTimeout(() => setShowEmailSuccess(false), 2000);
         }}
       />
+
+      <Dialog open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+        <DialogContent
+          className="sm:max-w-[425px]"
+          aria-describedby="date-picker-description"
+        >
+          <DialogHeader>
+            <DialogTitle>Select End Date</DialogTitle>
+            <DialogDescription id="date-picker-description">
+              Choose the end date for importing Google Calendar events.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">
+                Events will be imported from {DAYS_AGO} days ago until the
+                selected date.
+              </p>
+              <label htmlFor="end-date" className="text-sm font-medium">
+                End Date
+              </label>
+              <Input
+                id="end-date"
+                type="date"
+                value={formatDateForInput(toDate)}
+                onChange={(e) => setToDate(new Date(e.target.value))}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDatePickerOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleGoogleImport} disabled={isImporting}>
+              {isImporting ? "Importing..." : "Import"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

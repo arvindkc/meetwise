@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from "@radix-ui/react-dialog";
+} from "@/components/ui/dialog";
 import { Meeting } from "@/types";
 import { ampEmailService } from "@/services/ampEmailService";
 
@@ -29,6 +29,7 @@ export function EmailDialog({
   ]);
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const resetDialog = () => {
     setRecipients([{ email: "" }]);
@@ -49,26 +50,38 @@ export function EmailDialog({
   };
 
   const handleSendEmail = async () => {
-    const validRecipients = recipients.filter(
-      (r) => r.email.trim() && isValidEmail(r.email)
-    );
-    if (validRecipients.length === 0) {
-      alert("Please add at least one valid email address");
-      return;
-    }
+    if (!hasValidEmails()) return;
 
     try {
+      setError(null);
       setIsSending(true);
-      await ampEmailService.sendEmail(meetings, validRecipients);
+
+      const filledEmails = recipients.filter((r) => r.email.trim());
+      const validRecipients = recipients.filter(
+        (r) => r.email.trim() && isValidEmail(r.email)
+      );
+
+      if (validRecipients.length === 0) {
+        setError("Please provide at least one valid email address");
+        return;
+      }
+
+      await ampEmailService.sendEmail(
+        validRecipients.map((r) => r.email),
+        meetings
+      );
+
       setIsSuccess(true);
-      onSuccess?.();
-      setTimeout(() => {
-        onOpenChange(false);
-        resetDialog();
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to send email:", error);
-      alert("Failed to send email. Please try again.");
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      console.error("Failed to send email:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to send email. Please try again."
+      );
     } finally {
       setIsSending(false);
     }
@@ -83,14 +96,24 @@ export function EmailDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {open && <div className="fixed inset-0 bg-black/50" />}
-      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[480px] shadow-lg z-50">
-        <DialogTitle className="text-2xl font-normal mb-6">
-          Send Report
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          resetDialog();
+        }
+        onOpenChange(isOpen);
+      }}
+    >
+      <DialogContent
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 w-[480px] shadow-lg z-50"
+        aria-describedby="email-dialog-description"
+      >
+        <DialogTitle className="text-xl font-semibold mb-4">
+          Send Email Summary
         </DialogTitle>
-        <DialogDescription className="sr-only">
-          Add email recipients to send the meeting report
+        <DialogDescription id="email-dialog-description">
+          Send a summary of your meetings to team members or stakeholders.
         </DialogDescription>
         <div className="space-y-3">
           {recipients.map((recipient, index) => (
@@ -179,6 +202,11 @@ export function EmailDialog({
             )}
           </Button>
         </div>
+        {error && (
+          <div className="mt-4 p-2 bg-red-100 text-red-800 rounded-md">
+            {error}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

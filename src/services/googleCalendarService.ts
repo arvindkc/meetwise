@@ -101,17 +101,61 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
     if (!this.tokenClient) {
       throw new Error("Google API not initialized");
     }
-    return new Promise<void>((resolve) => {
-      this.tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        scope: GOOGLE_API_SCOPES.join(" "),
-        callback: (response: GoogleOAuthResponse) => {
-          if (response.error) return;
-          this.accessToken = response.access_token;
-          resolve();
-        },
-      });
-      this.tokenClient.requestAccessToken();
+    return new Promise<void>((resolve, reject) => {
+      try {
+        this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          scope: GOOGLE_API_SCOPES.join(" "),
+          callback: (response: GoogleOAuthResponse) => {
+            if (response.error) {
+              console.error("Google authentication error:", response.error);
+              reject(new Error(`Authentication error: ${response.error}`));
+              return;
+            }
+            this.accessToken = response.access_token;
+            resolve();
+          },
+        });
+
+        // Set a timeout in case the request hangs
+        const timeoutId = setTimeout(() => {
+          reject(
+            new Error("Authentication request timed out. Please try again.")
+          );
+        }, 30000); // 30 seconds timeout
+
+        this.tokenClient.requestAccessToken();
+
+        // Clear timeout on promise resolution
+        Promise.race([
+          new Promise<void>((res) => {
+            const originalResolve = resolve;
+            resolve = () => {
+              clearTimeout(timeoutId);
+              originalResolve();
+              res();
+            };
+          }),
+          new Promise<void>((_, rej) => {
+            const originalReject = reject;
+            reject = (reason) => {
+              clearTimeout(timeoutId);
+              originalReject(reason);
+              rej(reason);
+            };
+          }),
+        ]).catch(() => {
+          // This is just to handle the promise race
+          // The actual error is handled by the reject function
+        });
+      } catch (error) {
+        console.error("Error during Google authentication:", error);
+        reject(
+          error instanceof Error
+            ? error
+            : new Error("Unknown authentication error")
+        );
+      }
     });
   }
 
@@ -128,12 +172,12 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    console.log(
-      "Fetching Google Calendar events from:",
-      startDate,
-      "to:",
-      endDate
-    );
+    // console.log(
+    //   "Fetching Google Calendar events from:",
+    //   startDate.toISOString(),
+    //   "to:",
+    //   endDate.toISOString()
+    // );
     const response = await window.gapi.client.calendar.events.list({
       calendarId: "primary",
       timeMin: startDate.toISOString(),
@@ -144,9 +188,12 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
       orderBy: "startTime",
     } as GoogleCalendarParams);
 
+    // console.log("Total events before filtering:", response.result.items.length);
+
     const filteredEvents = response.result.items.filter((event) => {
-      // Filter out events with no other attendees
-      const hasOtherAttendees = (event.attendees?.length ?? 0) > 1;
+      // Include events where user is the organizer or an attendee
+      // This replaces the old hasOtherAttendees check that required multiple attendees
+      const hasAttendees = event.attendees ? event.attendees.length > 0 : true;
 
       // Filter out all-day events (they have date but no dateTime)
       const isAllDay = event.start?.date && !event.start?.dateTime;
@@ -157,8 +204,18 @@ export class GoogleCalendarServiceImpl implements GoogleCalendarService {
         event.eventType === "holiday" ||
         event.summary?.toLowerCase().includes("holiday");
 
-      return hasOtherAttendees && !isAllDay && !isHoliday;
+      // Log events being filtered for debugging
+      // if (isAllDay) {
+      //   console.log("Filtered out all-day event:", event.summary);
+      // }
+      // if (isHoliday) {
+      //   console.log("Filtered out holiday event:", event.summary);
+      // }
+
+      return hasAttendees && !isAllDay && !isHoliday;
     });
+
+    // console.log("Total events after filtering:", filteredEvents.length);
 
     return filteredEvents.map((event) => ({
       id: event.id || crypto.randomUUID(),

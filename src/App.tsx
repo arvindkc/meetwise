@@ -18,12 +18,21 @@ function App() {
 
   useEffect(() => {
     const init = async () => {
-      await googleCalendarService.initializeGoogleApi(
-        import.meta.env.VITE_GOOGLE_CLIENT_ID
-      );
+      try {
+        // Initialize Google API with proper error handling
+        await googleCalendarService.initializeGoogleApi(
+          import.meta.env.VITE_GOOGLE_CLIENT_ID
+        );
+      } catch (error) {
+        console.error("Failed to initialize Google API:", error);
+        // Continue with the app even if Google API fails
+      }
+
+      // Initialize store regardless of Google API status
       await initializeStore();
       setStoreInitialized(true);
     };
+
     init();
   }, [initializeStore]);
 

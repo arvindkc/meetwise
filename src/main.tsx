@@ -2,6 +2,10 @@ import { createRoot } from "react-dom/client";
 import ErrorBoundary from "./ErrorBoundary";
 import App from "./App";
 import "./index.css";
+import { setupGlobalErrorHandlers } from "./utils/corsHandler";
+
+// Set up global error handlers
+setupGlobalErrorHandlers();
 
 const rootElement = document.getElementById("root");
 
