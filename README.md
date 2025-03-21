@@ -7,6 +7,7 @@ A modern React application for managing and organizing meetings efficiently. Bui
 - Calendar data import and parsing
 - Drag-and-drop meeting prioritization
 - Meeting statistics and time tracking
+- Meeting Rating
 - Modern UI with shadcn/ui components
 - Persistent storage with Zustand
 
