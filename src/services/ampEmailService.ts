@@ -9,7 +9,8 @@ interface EmailRecipient {
 
 // Helper function for formatting meeting duration
 const formatDuration = (duration: number): string => {
-  return (duration / 60).toFixed(2) + " hours";
+  const minutes = Math.max(1, Math.round(duration * 60));
+  return `${minutes} minutes`;
 };
 
 export class AmpEmailService {

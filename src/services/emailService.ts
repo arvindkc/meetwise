@@ -31,7 +31,7 @@ const formatComments = (meetingId: string): string => {
 };
 
 const formatDuration = (hours: number): string => {
-  const minutes = Math.round(hours * 60);
+  const minutes = Math.max(1, Math.round(hours * 60));
   return `${minutes}min`;
 };
 
