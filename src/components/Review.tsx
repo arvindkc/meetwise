@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
 import { WeeklyMeetingLoad } from "./WeeklyMeetingLoad";
 import { WeeklyFreeMeetingHours } from "./WeeklyFreeMeetingHours";
@@ -24,8 +24,11 @@ interface DashboardItem {
 
 export function Review() {
   const { meetings: storedMeetings, targetHours } = useSettingsStore();
-  const dateRanges = getDateRanges();
-  const [meetings, setMeetings] = useState(
+
+  // Use useMemo to memoize the dateRanges calculation
+  const dateRanges = useMemo(() => getDateRanges(), []);
+
+  const [meetings, setMeetings] = useState(() =>
     filterMeetingsByDateRange(
       storedMeetings,
       dateRanges.review.start,
@@ -66,9 +69,9 @@ export function Review() {
     ]);
   }, [
     storedMeetings,
+    targetHours,
     dateRanges.review.start,
     dateRanges.review.end,
-    targetHours,
   ]);
 
   const handleDragEnd = (result: DropResult) => {
