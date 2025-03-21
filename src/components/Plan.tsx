@@ -14,6 +14,7 @@ import {
   filterMeetingsByDateRange,
 } from "../services/calendarService";
 import { MeetingInsights } from "./MeetingInsights";
+import { WeeklyPriorities } from "./WeeklyPriorities";
 
 export function Plan() {
   const { meetings: storedMeetings, targetHours } = useSettingsStore();
@@ -146,6 +147,7 @@ export function Plan() {
 
   return (
     <div className="space-y-6">
+      <WeeklyPriorities />
       <MeetingInsights meetings={meetings} />
       <StatsPanel stats={stats} />
 
