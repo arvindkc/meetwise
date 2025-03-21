@@ -30,6 +30,8 @@ export class AmpEmailService {
     recipientEmail: string
   ): Promise<string> {
     const dateRanges = getDateRanges();
+    const weeklyPriorities =
+      (await db.getSetting<string>("weeklyPriorities")) || "";
 
     // Pre-fetch calendar links for all meetings
     const calendarLinks = new Map<string, string>();
@@ -93,6 +95,17 @@ export class AmpEmailService {
     return `
       <html>
       <body>
+        ${
+          weeklyPriorities
+            ? `
+        <div style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
+          <h2>Weekly Priorities</h2>
+          <div style="white-space: pre-wrap;">${weeklyPriorities}</div>
+        </div>
+        `
+            : ""
+        }
+        
         ${
           upcomingMeetingsWithChanges.filter((m) => m.hasChanges).length > 0
             ? `

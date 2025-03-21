@@ -47,6 +47,8 @@ interface SettingsState extends MeetingSettings {
   initializeStore: () => Promise<void>;
   meetingRatings: Record<string, MeetingRating>;
   updateMeetings: (meetings: Meeting[]) => Promise<void>;
+  weeklyPriorities: string;
+  setWeeklyPriorities: (priorities: string) => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -61,6 +63,7 @@ export const useSettingsStore = create<SettingsState>()(
       meetings: [],
       isLoading: true,
       meetingRatings: {},
+      weeklyPriorities: "",
 
       setMeetingIcon: async (meetingId, icon) => {
         await db.setMeetingIcon(meetingId, icon);
@@ -151,6 +154,11 @@ export const useSettingsStore = create<SettingsState>()(
         set({ meetings });
       },
 
+      setWeeklyPriorities: async (priorities: string) => {
+        await db.setSetting("weeklyPriorities", priorities);
+        set({ weeklyPriorities: priorities });
+      },
+
       clearAllData: async () => {
         await db.clearAll();
         set({
@@ -162,6 +170,7 @@ export const useSettingsStore = create<SettingsState>()(
           meetingStatus: {},
           meetingRatings: {},
           targetHours: 40,
+          weeklyPriorities: "",
         });
       },
 
@@ -176,6 +185,7 @@ export const useSettingsStore = create<SettingsState>()(
             meetingComments,
             meetingStatus,
             meetingRatings,
+            weeklyPriorities,
           ] = await Promise.all([
             db.getAllMeetings(),
             db.getSetting<number>("targetHours"),
@@ -185,6 +195,7 @@ export const useSettingsStore = create<SettingsState>()(
             db.getAllMeetingComments(),
             db.getAllMeetingStatus(),
             db.getAllMeetingRatings(),
+            db.getSetting<string>("weeklyPriorities"),
           ]);
 
           // Sort meetings by rank when loading
@@ -201,6 +212,7 @@ export const useSettingsStore = create<SettingsState>()(
             meetingComments,
             meetingStatus,
             meetingRatings,
+            weeklyPriorities: weeklyPriorities ?? "",
             isLoading: false,
           });
         } catch (error) {
@@ -243,6 +255,7 @@ export const useSettingsStore = create<SettingsState>()(
       partialize: (state) => ({
         targetHours: state.targetHours,
         isLoading: state.isLoading,
+        weeklyPriorities: state.weeklyPriorities,
       }),
       version: 2,
       migrate: (persistedState: unknown, version) => {
