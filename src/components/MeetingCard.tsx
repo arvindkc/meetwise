@@ -28,6 +28,7 @@ interface MeetingCardProps {
   isOverTarget: boolean;
   onAction: (action: string, meetingId: string) => void;
   displayRank: number;
+  cost?: number;
 }
 
 export function MeetingCard({
@@ -35,6 +36,7 @@ export function MeetingCard({
   isOverTarget,
   onAction,
   displayRank,
+  cost,
 }: MeetingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { meetingStatus = {} } = useSettingsStore();
@@ -65,6 +67,13 @@ export function MeetingCard({
       hour: "numeric",
       minute: "2-digit",
     });
+  };
+
+  const getCostIndicator = (cost: number): string => {
+    if (cost >= 50000) return "$$$$";
+    if (cost >= 20000) return "$$$";
+    if (cost >= 5000) return "$$";
+    return "";
   };
 
   const hasPreRead =
@@ -113,6 +122,19 @@ export function MeetingCard({
                 {meeting.participants.length}
               </span>
             </div>
+            {cost !== undefined && (
+              <div className="flex items-center ml-2">
+                <span className="text-sm text-gray-600">
+                  $
+                  {cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+                {getCostIndicator(cost) && (
+                  <span className="font-bold text-amber-500 ml-1">
+                    {getCostIndicator(cost)}
+                  </span>
+                )}
+              </div>
+            )}
             {getStatusCount() > 0 && (
               <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full">
                 {getStatusCount()} action{getStatusCount() !== 1 ? "s" : ""}{" "}

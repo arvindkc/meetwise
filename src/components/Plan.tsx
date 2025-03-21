@@ -184,6 +184,13 @@ export function Plan() {
                           isOverTarget={runningTotal > currentTargetHours}
                           onAction={handleMeetingAction}
                           displayRank={index + 1}
+                          cost={
+                            meeting.participants.filter(
+                              (p) => !p.includes("resource.calendar.google.com")
+                            ).length *
+                            meeting.duration *
+                            200
+                          }
                         />
                       </div>
                     )}
