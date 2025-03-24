@@ -155,6 +155,14 @@ export const filterMeetingsByDateRange = (
       const meetingTime = new Date(meeting.startTime).getTime();
       return meetingTime >= start.getTime() && meetingTime <= end.getTime();
     })
+    .filter((meeting) => {
+      // Count human participants (excluding room resources)
+      const humanParticipants = meeting.participants.filter(
+        (participant) => !participant.includes("resource.calendar.google.com")
+      );
+      // Filter out meetings with only one human participant
+      return humanParticipants.length > 1;
+    })
     .map((meeting, index) => ({
       ...meeting,
       rank: index + 1, // Reset rank to start from 1

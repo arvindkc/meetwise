@@ -47,43 +47,70 @@ const hasMeetingChanges = (meetingId: string): boolean => {
   );
 };
 
+const formatMeetingEntry = (meeting: Meeting): string => {
+  return `${meeting.rank}. ${meeting.title}
+${formatDuration(meeting.duration)} | ${
+    meeting.location !== "No location specified"
+      ? meeting.location
+      : "No location"
+  }${
+    formatMeetingActions(meeting.id)
+      ? `\n${formatMeetingActions(meeting.id).trim()}`
+      : ""
+  }${
+    formatComments(meeting.id) ? `\n${formatComments(meeting.id).trim()}` : ""
+  }`;
+};
+
 const generateEmailContent = (meetings: Meeting[]): string => {
   const meetingsWithChanges = meetings
     .filter((m) => hasMeetingChanges(m.id))
     .sort((a, b) => Number(a.rank) - Number(b.rank));
 
-  const topMeetings = [...meetings]
-    .sort((a, b) => Number(a.rank) - Number(b.rank))
-    .slice(0, 5);
+  // Group meetings by priority
+  const highPriorityMeetings = meetings
+    .filter((m) => m.priorityLevel === "high")
+    .sort((a, b) => Number(a.rank) - Number(b.rank));
+
+  const regularMeetings = meetings
+    .filter((m) => m.priorityLevel === "regular" || !m.priorityLevel)
+    .sort((a, b) => Number(a.rank) - Number(b.rank));
+
+  const lowPriorityMeetings = meetings
+    .filter((m) => m.priorityLevel === "low")
+    .sort((a, b) => Number(a.rank) - Number(b.rank));
 
   return `
 CHANGES NEEDED
 ─────────────
-${meetingsWithChanges
-  .map(
-    (m) =>
-      `${m.rank}. ${m.title}
-${formatDuration(m.duration)} | ${
-        m.location !== "No location specified" ? m.location : "No location"
-      }${
-        formatMeetingActions(m.id)
-          ? `\n${formatMeetingActions(m.id).trim()}`
-          : ""
-      }${formatComments(m.id) ? `\n${formatComments(m.id).trim()}` : ""}`
-  )
-  .join("\n\n")}
+${meetingsWithChanges.map(formatMeetingEntry).join("\n\n")}
 
-TOP 5 MEETINGS
+PRIORITY MEETINGS
 ─────────────
-${topMeetings
-  .map(
-    (m) =>
-      `${m.rank}. ${m.title}
-${formatDuration(m.duration)} | ${
-        m.location !== "No location specified" ? m.location : "No location"
-      }`
-  )
-  .join("\n\n")}
+
+HIGH PRIORITY
+────────────
+${
+  highPriorityMeetings.length > 0
+    ? highPriorityMeetings.map(formatMeetingEntry).join("\n\n")
+    : "No high priority meetings"
+}
+
+REGULAR MEETINGS
+────────────
+${
+  regularMeetings.length > 0
+    ? regularMeetings.slice(0, 5).map(formatMeetingEntry).join("\n\n")
+    : "No regular meetings"
+}
+
+LOW PRIORITY
+────────────
+${
+  lowPriorityMeetings.length > 0
+    ? lowPriorityMeetings.slice(0, 3).map(formatMeetingEntry).join("\n\n")
+    : "No low priority meetings"
+}
 
 Generated: ${new Date().toLocaleDateString()}`;
 };

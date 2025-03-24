@@ -99,32 +99,39 @@ export function MeetingCard({
       )}
     >
       <CardHeader className="p-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move" />
-            <span className="text-base font-semibold">#{displayRank}</span>
-            <span className="text-base">{meeting.title}</span>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center gap-2">
+            <DragHandleHorizontalIcon className="w-4 h-4 text-gray-400 cursor-move flex-shrink-0" />
+            <span className="text-base font-semibold flex-shrink-0">
+              #{displayRank}
+            </span>
+            <span className="text-base font-medium truncate">
+              {meeting.title}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             {hasPreRead && (
               <FileTextIcon
-                className="h-4 w-4 text-blue-600"
+                className="h-4 w-4 text-blue-600 flex-shrink-0"
                 aria-label="Has pre-read materials"
               />
             )}
             {isExternalMeeting() && (
               <Globe
-                className="h-4 w-4 text-purple-600"
+                className="h-4 w-4 text-purple-600 flex-shrink-0"
                 aria-label="External meeting"
               />
             )}
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               <Users className="w-3 h-3 mr-1" />
-              <span className="text-sm text-gray-600">
+              <span className="text-xs text-gray-600">
                 {meeting.participants.length}
               </span>
             </div>
             {cost !== undefined && (
-              <div className="flex items-center ml-2">
-                <span className="text-sm text-gray-600">
+              <div className="flex items-center flex-shrink-0">
+                <span className="text-xs text-gray-600">
                   $
                   {cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </span>
@@ -136,29 +143,28 @@ export function MeetingCard({
               </div>
             )}
             {getStatusCount() > 0 && (
-              <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full">
+              <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full flex-shrink-0">
                 {getStatusCount()} action{getStatusCount() !== 1 ? "s" : ""}{" "}
                 needed
               </span>
             )}
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center text-gray-500 text-xs">
+
+            <div className="flex items-center text-gray-500 text-xs ml-auto flex-shrink-0">
               <Clock className="w-3 h-3 mr-1" />
               <span>{formatDuration(meeting.duration)}</span>
               <span className="mx-1">•</span>
               <span>{formatDateTime(meeting.startTime)}</span>
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-gray-500 hover:text-gray-700 ml-2"
+              >
+                {isExpanded ? (
+                  <ChevronUpIcon className="w-4 h-4" />
+                ) : (
+                  <ChevronDownIcon className="w-4 h-4" />
+                )}
+              </button>
             </div>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {isExpanded ? (
-                <ChevronUpIcon className="w-4 h-4" />
-              ) : (
-                <ChevronDownIcon className="w-4 h-4" />
-              )}
-            </button>
           </div>
         </div>
       </CardHeader>

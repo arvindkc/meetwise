@@ -17,6 +17,7 @@ export interface Meeting {
   showActions?: boolean;
   comment?: string;
   rating?: number;
+  priorityLevel?: "high" | "regular" | "low";
 }
 
 export interface Comment {
