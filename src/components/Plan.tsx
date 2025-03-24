@@ -365,67 +365,72 @@ export function Plan() {
       <StatsPanel stats={stats} />
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        {/* High Priority Bucket */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2 text-amber-600">
-            High Priority Meetings
-          </h2>
-          <Droppable droppableId="high-priority">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-1 min-h-[50px] bg-amber-50 p-2 rounded-md"
-              >
-                {highPriorityMeetings.map((meeting, index) =>
-                  renderMeetingCard(meeting, index, highPriorityMeetings)
-                )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column - Regular Meetings */}
+          <div>
+            <h2 className="text-xl font-bold mb-2 text-blue-600">
+              Regular Meetings
+            </h2>
+            <Droppable droppableId="regular">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-1 min-h-[600px] bg-blue-50 p-4 rounded-md"
+                >
+                  {regularMeetings.map((meeting, index) =>
+                    renderMeetingCard(meeting, index, regularMeetings)
+                  )}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
 
-        {/* Regular Meetings Bucket */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2 text-blue-600">
-            Regular Meetings
-          </h2>
-          <Droppable droppableId="regular">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-1 min-h-[50px] bg-blue-50 p-2 rounded-md"
-              >
-                {regularMeetings.map((meeting, index) =>
-                  renderMeetingCard(meeting, index, regularMeetings)
+          {/* Right Column - Priority Meetings */}
+          <div className="space-y-6">
+            {/* High Priority Bucket */}
+            <div>
+              <h2 className="text-xl font-bold mb-2 text-amber-600">
+                High Priority Meetings
+              </h2>
+              <Droppable droppableId="high-priority">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-1 min-h-[250px] bg-amber-50 p-4 rounded-md"
+                  >
+                    {highPriorityMeetings.map((meeting, index) =>
+                      renderMeetingCard(meeting, index, highPriorityMeetings)
+                    )}
+                    {provided.placeholder}
+                  </div>
                 )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </div>
+              </Droppable>
+            </div>
 
-        {/* Low Priority Bucket */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2 text-gray-600">
-            Low Priority Meetings
-          </h2>
-          <Droppable droppableId="low-priority">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-1 min-h-[50px] bg-gray-50 p-2 rounded-md"
-              >
-                {lowPriorityMeetings.map((meeting, index) =>
-                  renderMeetingCard(meeting, index, lowPriorityMeetings)
+            {/* Low Priority Bucket */}
+            <div>
+              <h2 className="text-xl font-bold mb-2 text-gray-600">
+                Low Priority Meetings
+              </h2>
+              <Droppable droppableId="low-priority">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-1 min-h-[250px] bg-gray-50 p-4 rounded-md"
+                  >
+                    {lowPriorityMeetings.map((meeting, index) =>
+                      renderMeetingCard(meeting, index, lowPriorityMeetings)
+                    )}
+                    {provided.placeholder}
+                  </div>
                 )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+              </Droppable>
+            </div>
+          </div>
         </div>
       </DragDropContext>
     </div>
