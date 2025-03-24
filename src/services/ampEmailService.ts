@@ -65,15 +65,33 @@ export class AmpEmailService {
         })
     );
 
-    // Get prioritized meetings for next week with computed ranks
-    const upcomingPriorityMeetings = meetings
-      .filter((m) => {
-        const meetingTime = new Date(m.startTime).getTime();
-        return (
-          meetingTime >= dateRanges.plan.start.getTime() &&
-          meetingTime <= dateRanges.plan.end.getTime()
-        );
-      })
+    // Get all upcoming meetings and group by priority
+    const upcomingMeetings = meetings.filter((m) => {
+      const meetingTime = new Date(m.startTime).getTime();
+      return (
+        meetingTime >= dateRanges.plan.start.getTime() &&
+        meetingTime <= dateRanges.plan.end.getTime()
+      );
+    });
+
+    // Group meetings by priority
+    const highPriorityMeetings = upcomingMeetings
+      .filter((m) => m.priorityLevel === "high")
+      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .map((meeting, index) => ({ ...meeting, computedRank: index + 1 }));
+
+    const regularMeetings = upcomingMeetings
+      .filter((m) => m.priorityLevel === "regular" || !m.priorityLevel)
+      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .map((meeting, index) => ({ ...meeting, computedRank: index + 1 }));
+
+    const lowPriorityMeetings = upcomingMeetings
+      .filter((m) => m.priorityLevel === "low")
+      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .map((meeting, index) => ({ ...meeting, computedRank: index + 1 }));
+
+    // For backward compatibility
+    const upcomingPriorityMeetings = upcomingMeetings
       .sort((a, b) => Number(a.rank) - Number(b.rank))
       .map((meeting, index) => ({ ...meeting, computedRank: index + 1 }));
 
@@ -92,6 +110,24 @@ export class AmpEmailService {
           return { meeting: m, rating };
         })
     );
+
+    // Helper function to render a meeting
+    const renderMeeting = (m: Meeting & { computedRank?: number }) => `
+      <div style="margin-bottom: 15px; border: 1px solid #eee; padding: 15px; border-radius: 8px;">
+        <strong>#${m.computedRank || "-"}. 
+          <a href="${calendarLinks.get(
+            m.id
+          )}" style="color: #0066cc; text-decoration: none;">
+            ${m.title}
+          </a>
+        </strong>
+        <div>Time: ${new Date(m.startTime).toLocaleString()}</div>
+        <div>Duration: ${formatDuration(m.duration)}</div>
+        <div>Location: ${
+          m.location !== "No location specified" ? m.location : "No location"
+        }</div>
+      </div>
+    `;
 
     return `
       <html>
@@ -188,28 +224,33 @@ export class AmpEmailService {
         }
 
         <h2>Priority Meetings</h2>
-        ${upcomingPriorityMeetings
-          .map(
-            (m) => `
-          <div style="margin-bottom: 15px; border: 1px solid #eee; padding: 15px; border-radius: 8px;">
-            <strong>#${m.computedRank}. 
-              <a href="${calendarLinks.get(
-                m.id
-              )}" style="color: #0066cc; text-decoration: none;">
-                ${m.title}
-              </a>
-            </strong>
-            <div>Time: ${new Date(m.startTime).toLocaleString()}</div>
-            <div>Duration: ${formatDuration(m.duration)}</div>
-            <div>Location: ${
-              m.location !== "No location specified"
-                ? m.location
-                : "No location"
-            }</div>
-          </div>
-        `
-          )
-          .join("")}
+        
+        <h3 style="color: #D97706; margin-top: 20px;">High Priority Meetings</h3>
+        <div style="border-left: 4px solid #D97706; padding-left: 15px;">
+          ${
+            highPriorityMeetings.length > 0
+              ? highPriorityMeetings.map(renderMeeting).join("")
+              : '<div style="font-style: italic; color: #666;">No high priority meetings</div>'
+          }
+        </div>
+
+        <h3 style="color: #2563EB; margin-top: 20px;">Regular Meetings</h3>
+        <div style="border-left: 4px solid #2563EB; padding-left: 15px;">
+          ${
+            regularMeetings.length > 0
+              ? regularMeetings.map(renderMeeting).join("")
+              : '<div style="font-style: italic; color: #666;">No regular meetings</div>'
+          }
+        </div>
+
+        <h3 style="color: #6B7280; margin-top: 20px;">Low Priority Meetings</h3>
+        <div style="border-left: 4px solid #6B7280; padding-left: 15px;">
+          ${
+            lowPriorityMeetings.length > 0
+              ? lowPriorityMeetings.map(renderMeeting).join("")
+              : '<div style="font-style: italic; color: #666;">No low priority meetings</div>'
+          }
+        </div>
 
         ${
           recentRatedMeetings.filter((m) => m.rating).length > 0
